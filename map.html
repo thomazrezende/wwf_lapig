@@ -1,0 +1,110 @@
+<!doctype html>
+<html>
+<head>
+	<meta charset='UTF-8'>
+	<title>WWF : RISCO SÓCIO AMBIENTAL PARA COMMODITIES</title>
+
+	<script> var page=1 </script>
+
+	<meta property='og:url' content='################' />
+	<meta property='og:title' content='################' />
+	<meta property='og:description' content='################' />
+	<meta property='og:image' content='################'>
+
+	<meta name='twitter:url' content='################'>
+	<meta name='twitter:title' content='################'>
+	<meta name='twitter:description' content='################'>
+	<meta name='share_desc' content='################'>
+	<meta name='twitter:image' content='################'>
+
+	<script data-main='js/lib/settings.js' src='js/lib/require.js'></script>
+
+	<link rel='stylesheet' type='text/css' href='css/min/leaflet.css'>
+	<link rel='stylesheet' type='text/css' href='css/min/reset.css'>
+	<link rel='stylesheet' type='text/css' href='css/min/main.css'>
+	<link rel='stylesheet' type='text/css' href='css/min/map.css'>
+
+</head>
+<body >
+
+	<div id="top_bar" class='animate2 shadow_b'>
+		<div id='logo_rsa_map'></div>
+		<div id='logos_top'>
+			<div class='logo_top' id='logo_wwf'></div>
+			<div class='logo_top' id='logo_lapig'></div>
+		</div>
+	</div>
+
+	<div id='container' class='animate2'>
+
+		<div id="data_container" class="animate2">
+			<div id="data_bt" class='animate1'>
+				<div class='arrow icon15 animate1 icon-left'></div>
+			</div>
+
+			<div id="filter_bts">
+				<div id="indicators_bt" class='list_bt animate2'>
+					<span id='indicators_bt_lb1' class='lb1 animate1 lg_indicators'></span>
+					<span id='indicators_bt_lb2' class='lb2 animate1'></span>
+					<div class='arrow animate1 icon15 icon-down'></div>
+				</div>
+				<div class='list_bt animate1' id="clear_filters">
+					<div class="animate1 icon icon15 icon-trash"></div>
+					<label class='lg_clear_filters'></label>
+				</div>
+				<div id="areas_bt" class='list_bt animate2'>
+					<span id='areas_bt_lb1' class='lb1 animate1 lg_area'></span>
+					<span id='areas_bt_lb2' class='lb2 animate1'></span>
+					<div class='arrow animate1 icon15 icon-down'></div>
+				</div>
+			</div>
+
+			<div id='category_filter' class="floating_container animate2">
+				<div class="floating_list list_container show animate2">
+					<ul id="category_filter_ul" class="floating_list list_content "></ul>
+				</div>
+			</div>
+
+			<div id='area_filters' class="floating_container animate2">
+				<div id='area_main_list' class="floating_list list_container show animate2">
+					<ul id="area_main_ul" class="floating_list list_content "></ul>
+				</div>
+			</div>
+
+			<div id="indicators" class="list_container show ">
+				<ul id="indicators_list" class="list_content show"></ul>
+			</div>
+
+			<div id="report_container" class="animate2">
+				<div id="report_bt" class='list_bt animate1'>
+					<div class='arrow animate1 icon15 icon-up'></div>
+					<span class='lg_selected_indicators' ></span>
+					<div id="report_bt_icon">
+						<div id='report_bt_counter' class="counter animate1">7</div>
+						<div class='icon35 icon animate1 icon-report'></div>
+					</div>
+				</div>
+				<ul id="report_indicators" class="list_content "></ul>
+				<div id="clear_report_bt" class='list_bt animate1'>
+					<div id='clear_report_icon' class='icon25 icon animate1 icon-trash'></div>
+					<span class='lg_remove_all_indicators' ></span>
+				</div>
+			</div>
+		</div>
+
+		<div id="map_container" class="animate2">
+			<div id='map_controls'>
+				<div id='map_type' class='animate1'>
+					<ul id='map_type_ul'></ul>
+				</div>
+				<div class='zoom_bt animate1' id='zoom_in'>&plus;</div>
+				<div class='zoom_bt animate1' id='zoom_out'>&minus;</div>
+			</div>
+			<div id='map'></div>
+		</div>
+
+	</div>
+
+
+</body>
+</html>
