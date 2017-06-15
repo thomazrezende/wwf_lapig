@@ -1,15 +1,26 @@
 /*
-proximos passos:
 
-1. incluir o botão EXIBIR CAMADAS SELECIONADAS
-2. incluir botão DESSELECIONAR TODAS AS camadas (prompt)
-3. BOTÃO INFERIR vira GERAR RELATORIO, pegando camadas selecionadas e montando
-os dados completos (precisa ver a questão dos rankings e evoluções)
-4. verificar questão da sincronia de dados com filtros espaciaias
-5. puxar dados nas camadas do mapa
-6. resolver problema das listas de municípios no area-filter
-7. clique no municipio no mapa chama aba relatório com dados do municipio
- 
+POSSIBILIDADE PARA EVENTUAL RETORNO DESSE TRABALHO:
+
+1. Carregar a lista de indicadores apenas uma vez e modificar os valores na
+filtragem espacial.
+
+1.1 independente do filtro espacial, os indicadores só serão inseridos no
+mapa/relatório uma vez (atualmente a lista de indicadores é reconstruida
+cada vez que um filtro espacial é definido: perda de vínculo entre botão, mapa
+e relatório). No momento do GERAR RELATÓRIO, será considerado o filtro espacial
+atual e os indicadores escolhidos
+
+2. filtros espaciais são apenas uma mascara visual no mapa, não a solução atual, com
+gráficos confinados nas áreas escolhidas. Pode ser uma linha laranja no entorno da
+área escolhida
+
+3. O botão inferior volta a ser EDITAR RELATÓRIO e dentro dele volta a ter
+GERAR RELATÓRIO | LIMPAR RELATÓRIO , que redireciona para a página report.html
+com os indicadores e os dados do filtro espacial
+
+3.1 isso para evitar a confusão de vários layers se referindo ao mesmo indicador
+apenas com mudança na área. isso ficou uma bosta
 
 */
 
@@ -200,7 +211,7 @@ $(sort_layers_msg).html(language['sort_msg'][lang])
 
 function create_layer( d ){
 
-	var layer = elem('li', { id: 'layer_' + d.id, trg:layers_list })
+	var layer = elem('li', { id: d.regionType + '_' + d.region + '_' + d.id, trg:layers_list })
 	$(layer)
 	.addClass('layer')
 	.addClass('animate')
@@ -214,8 +225,7 @@ function create_layer( d ){
 	$(label1)
 	.addClass('lb1')
 	.addClass('animate1')
-	.html( d.ano )
-	// .html( d.area_label + ' | ' + d.ano )
+	.html( d.area_label + ' | ' + d.ano )
 	layer.label1 = label1
 
 	var label2 = elem('div', { trg:layer })
@@ -291,13 +301,14 @@ function create_layer( d ){
 	area_label:d.area_label,
 	ano:d.ano[d.val_id],
 
+
 	*/
 
-	var ms_filter = '"[ANO]"="' + d.ano + '"'
-	// if(d.regionType == 'estado' ) ms_filter +='AND "[UF]"="'+d.region+'"'
-	// if(d.regionType == 'bioma' ) ms_filter +='AND "[BIOMA]"="'+d.region+'"'
-	// if(d.regionType == 'municipio' ) ms_filter +='AND "[COD_MUNICI]"="'+d.region+'"'
-	// if(d.regionType == 'bacia' ) ms_filter +='AND "[BIOMA]"="'+d.region+'"'
+	var ms_filter = '"[ANO]"="'+d.ano+'"'
+	if(d.regionType == 'estado' ) ms_filter +='AND "[UF]"="'+d.region+'"'
+	if(d.regionType == 'bioma' ) ms_filter +='AND "[BIOMA]"="'+d.region+'"'
+	if(d.regionType == 'municipio' ) ms_filter +='AND "[COD_MUNICI]"="'+d.region+'"'
+	if(d.regionType == 'bacia' ) ms_filter +='AND "[BIOMA]"="'+d.region+'"'
 
 	console.log('ms_filter');
 	console.log(ms_filter);
@@ -306,8 +317,8 @@ function create_layer( d ){
 		layers: d.id,
 		format: 'image/png',
 		transparent: true,
-		width:512,
-		height:512,
+		width:500,
+		height:500,
 		srs:'EPSG:900913',
 		MSFILTER:ms_filter,
 		updateWhenIdle:true
@@ -358,7 +369,6 @@ function search_indicator(d){
 	return ind
 }
 
-/*
 function create_mirror(d){
 	var mirror = elem('li', {trg: report_indicators, cls:'indicator mirror'})
 	d.mirror = mirror
@@ -387,7 +397,6 @@ function remove_mirror(d){
 	$(d.mirror).remove()
 	d.mirror = null
 }
-*/
 
 set('clear_report_bt')
 
@@ -406,14 +415,14 @@ DATA.list = []
 DATA.categs = ['all']
 
 // etapa 6
-DATA.create_indicators_list = function(){
+DATA.create_indicators_list = function(regionType, region){
 
 	var filters
 	indicators_list.innerHTML = ''
 	category_filter_ul.innerHTML = ''
 
 	$(DATA.json).each(function(i,d){
-		create_indicator(d)
+		create_indicator(d, regionType, region)
 		$(d.categ).each(function(_i,_d){
 			var categ_norm = removeAccents(_d.toLowerCase())
 			if(DATA.categs.indexOf(categ_norm) < 0) DATA.categs.push(categ_norm)
@@ -429,27 +438,10 @@ DATA.create_indicators_list = function(){
 	})
 
 	set_categ_filter(CATEG.itens[0])
+
 	check_indicators_on()
 
 }
-
-
-DATA.update_indicators_data = function(regionType, region){
-	console.log("update_indicators_data!!");
-
-	$(DATA.list).each(function(i,d){
-		//label
-		$(d.area_label).html(get_area_label(regionType, region))
-		// //dado
-		// caso o issue SINCRONIA não seja possível de resolver, capturar novos dados assim:
-		// 1. procurar ano atual no d.ano[]
-		// 2. se achar, pegar o val_id
-		// 3.1 true: buscar o valor com novo val_id
-		// 3.2 false: retornar "valor não encontrado"
-	})
-
-}
-
 
 function normalize_categs(arr){
 	var r_arr = []
@@ -500,7 +492,7 @@ function convert_lb(lb){
 }
 
 // etapa 7
-function create_indicator(d){
+function create_indicator(d, regionType, region){
 
 	var indicator = elem('li', {trg:indicators_list, cls:'indicator animate2'})
 
@@ -515,9 +507,9 @@ function create_indicator(d){
 	indicator.valor = d.valor.reverse()
 	indicator.tipo = d.tipo
 	indicator.val_id = 0
-	// indicator.regionType = regionType
-	// indicator.region = region
-	// indicator.area_label = get_area_label(regionType, region)
+	indicator.regionType = regionType
+	indicator.region = region
+	indicator.area_label = get_area_label(regionType, region)
 
 	DATA.list.push(indicator)
 
@@ -535,11 +527,7 @@ function create_indicator(d){
 	hit.indicator = indicator
 
 	var title = elem('label', {trg:indicator, cls:'animate1 title'})
-
-	var title_name = elem('span', {trg:title, html:d.nome})
-	var title_div = elem('span', {trg:title, html:' | '})
-	indicator.area_label = elem('span', {trg:title, html:'BRASIL'})
-	title_div = elem('span', {trg:title, html:' | '})
+	$(title).html(d.nome + ' | ' + indicator.area_label + ' | ' )
 
 	var year = elem( 'span', { trg:title })
 	indicator.year = year
@@ -660,34 +648,20 @@ function toggle_check_indicator(d){
 function update_report(d){
 	if(d.selected){
 		var report_ind = {
-			//region: d.region,
-			//regionType: d.regionType,
+			region: d.region,
+			regionType: d.regionType,
 			id: d.id,
-			// area_label:d.area_label,
+			area_label:d.area_label,
 			ano:d.ano[d.val_id],
 			valor:d.valor[d.val_id],
 			unidade:d.unidade,
 			nome:d.nome
 		}
 		create_layer(report_ind)
-		// create_mirror(report_ind)
+		create_mirror(report_ind)
 		report.list.push(report_ind)
 	}else{
 		console.log('remove');
-
-		$(report.list).each(function(_i,_d){
-			if( _d.id == d.id){
-				remove_layer(_d)
-				report.list.splice(_i,1)
-				_d = null
-			}
-		})
-
-		/*
-		mudança:
-
-		a remoção da camada não depende mais de regionType + Region. Basta eliminar a camada vinculada ao d
-
 		$(report.list).each(function(_i,_d){
 			if(d.region == _d.region && d.regionType == _d.regionType && d.id == _d.id){
 				remove_layer(_d)
@@ -696,8 +670,6 @@ function update_report(d){
 				_d = null
 			}
 		})
-		*/
-
 	}
 	console.log('update_report: ', report);
 	sessionStorage.setItem('report', JSON.stringify(report))
@@ -754,7 +726,7 @@ function check_session_report(){
 		$(report.list).each(function(i,d){
 			// + create report_item
 			create_layer(d)
-			// create_mirror(d)
+			create_mirror(d)
 		})
 		blink('in')
 	}
@@ -763,7 +735,7 @@ function check_session_report(){
 function check_indicators_on(){
 	$(report.list).each(function(i,d){
 		$(DATA.list).each(function(_i,_d){
-			if( d.id == _d.id ){
+			if(d.region == _d.region && d.regionType == _d.regionType && d.id == _d.id ){
 				set_indicator(_d, true)
 			}
 		})
@@ -849,12 +821,9 @@ AREA.load_floating_lists = function(){
 		create_area_list(area_main_ul, lb, AREA.json[d], true)
 	}
 
-	// indicators list
-	var url = 'data/lista.json'
-	ajax( url, DATA, 'create_indicators_list', [] )
-
-	//default area
+	// load default indicators (brasil)
 	set_area_filter(area_brasil)
+
 }
 
 
@@ -971,23 +940,6 @@ function set_area_filter(itm){
 	close_floatings()
 	check_filters()
 
-	// 1 carrega dados novos nos indicadores
-
-	var url = 'data/lista'
-	if(itm.regionType != 'brasil' ) url += '_' + itm.regionType
-	if(itm.region != 'brasil' ) url += '_' + itm.region
-	url += '.json'
-
-	ajax( url, DATA, 'update_indicators_data', [itm.regionType, itm.region] )
-
-
-	// 2 carrega mascara no mapa
-
-
-	/*
-	mudança aqui: não será mais um recarregamento + gerar lista
-
-	versao antiga:
 	// etapa 5: call indicators list
 	// var url = 'http://maps.lapig.iesa.ufg.br/indicadores/lista'
 	// if(itm.regionType != 'brasil' && itm.region != 'brasil') url += '?regionType=' + itm.regionType + '&region=' + itm.region
@@ -999,9 +951,6 @@ function set_area_filter(itm){
 	url += '.json'
 
 	ajax( url, DATA, 'create_indicators_list', [itm.regionType, itm.region] )
-
-	*/
-
 }
 
 function convert_lang(lb){
