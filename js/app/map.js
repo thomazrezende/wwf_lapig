@@ -1,15 +1,16 @@
 /*
 proximos passos:
 
-1. incluir o botão EXIBIR CAMADAS SELECIONADAS
-2. incluir botão DESSELECIONAR TODAS AS camadas (prompt)
+1. incluir o botão EXIBIR CAMADAS SELECIONADAS + funcionamento
+2. incluir botão EXCLUIR TODAS AS CAMADAS (prompt)
 3. BOTÃO INFERIR vira GERAR RELATORIO, pegando camadas selecionadas e montando
 os dados completos (precisa ver a questão dos rankings e evoluções)
 4. verificar questão da sincronia de dados com filtros espaciaias
 5. puxar dados nas camadas do mapa
 6. resolver problema das listas de municípios no area-filter
 7. clique no municipio no mapa chama aba relatório com dados do municipio
- 
+
+Indicador de área plantada de soja: http://m2.lapig.iesa.ufg.br/ows?EXCEPTIONS=application%2Fvnd.ogc.se_xml&TRANSPARENT=TRUE&VERSION=1.1.1&SERVICE=WMS&REQUEST=GetLegendGraphic&LAYER=area_soja&format=image%2Fpng
 
 */
 
@@ -191,8 +192,8 @@ $(layers_list).sortable({
 var msg_layers = elem('div', {cls:'no_indicators_msg', trg:layers})
 $(msg_layers).html(language['no_indicators'][lang])
 
-var msg_report = elem('li', {cls:'no_indicators_msg', trg:report_indicators})
-$(msg_report).html(language['no_indicators'][lang])
+var msg_indicators = elem('li', {cls:'no_indicators_msg', trg:indicators})
+$(msg_indicators).html(language['no_indicators'][lang])
 
 var sort_layers_msg = elem('div', {id:'sort_layers_msg', trg:layers})
 $(sort_layers_msg).html(language['sort_msg'][lang])
@@ -267,6 +268,37 @@ function create_layer( d ){
 	.addClass('animate2')
 	layer.content = content
 
+	var legend = elem('img', {trg:content})
+	$(legend).attr('src','http://m2.lapig.iesa.ufg.br/ows?EXCEPTIONS=application%2Fvnd.ogc.se_xml&TRANSPARENT=TRUE&VERSION=1.1.1&SERVICE=WMS&REQUEST=GetLegendGraphic&LAYER=' + d.id + '&format=image%2Fpng')
+
+	var op_slider = elem('div', { cls:'op_slider', trg:content })
+	var op_track = elem('div', { cls:'op_track', trg:op_slider })
+	var op_label = elem('div', { cls:'op_label', trg:op_slider, html: language.opacity[lang] })
+	var op_handle = elem('div', { cls:'ui-slider-handle', trg:op_slider, html:'100%' })
+
+	$(op_slider).slider({
+		value: 100,
+		slide: function( event, ui ) {
+			$(op_handle).text( ui.value + '%' )
+			ui.handle.wms_layer.setOpacity(ui.value/100)
+		}
+	})
+
+	var remove = elem('div', {trg:content, cls:'remove', html: language.remove[lang]})
+	$(remove).on('click', function(){
+		var ID = this.ID
+		$(DATA.list).each(function(_i,_d){
+			if(_d.id == ID) toggle_check_indicator(_d)
+		})
+	})
+	remove.ID = d.id
+
+	var download = elem('div', {trg:content, cls:'download', html: language.download[lang]})
+	$(download).on('click', function(){
+		 console.log('!!download ' + this.ID);
+	})
+	download.ID = d.id
+
 	var hit = elem('div', { trg:layer })
 	$(hit)
 	.addClass('layer_hit')
@@ -277,22 +309,6 @@ function create_layer( d ){
 	hit.layer = layer
 
 	// map
-	// ms filter
-
-	// "[ANO]"="2005"
-	// "[ANO]"="2014"AND"[BIOMA]"="CERRADO"
-	// "[ANO]"="2002"AND"[UF]"="GO"
-	// "[COD_MUNICI]"!="0"
-
-	/*
-	region: d.region,
-	regionType: d.regionType,
-	id: d.id,
-	area_label:d.area_label,
-	ano:d.ano[d.val_id],
-
-	*/
-
 	var ms_filter = '"[ANO]"="' + d.ano + '"'
 	// if(d.regionType == 'estado' ) ms_filter +='AND "[UF]"="'+d.region+'"'
 	// if(d.regionType == 'bioma' ) ms_filter +='AND "[BIOMA]"="'+d.region+'"'
@@ -322,6 +338,9 @@ function create_layer( d ){
 
 	// refresh é FUNDAMENTAL sempre que incluir novos elementos
 	$(layers_list).sortable('refresh')
+
+	//slider > op_handle
+	op_handle.wms_layer = wms_layer
 
 }
 
@@ -389,9 +408,9 @@ function remove_mirror(d){
 }
 */
 
-set('clear_report_bt')
+set('clear_report')
 
-$(clear_report_bt).on('click', function(){
+$(clear_report).on('click', function(){
 	$(DATA.list).each(function(i,d){
 		if(d.selected) toggle_check_indicator(d)
 	})
@@ -403,14 +422,14 @@ $(clear_report_bt).on('click', function(){
 var DATA = {}
 set('indicators_list')
 DATA.list = []
-DATA.categs = ['all']
+DATA.categs = ['all', 'selected']
 
 // etapa 6
 DATA.create_indicators_list = function(){
 
 	var filters
-	indicators_list.innerHTML = ''
-	category_filter_ul.innerHTML = ''
+	// indicators_list.innerHTML = ''
+	// category_filter_ul.innerHTML = ''
 
 	$(DATA.json).each(function(i,d){
 		create_indicator(d)
@@ -682,23 +701,10 @@ function update_report(d){
 				_d = null
 			}
 		})
-
-		/*
-		mudança:
-
-		a remoção da camada não depende mais de regionType + Region. Basta eliminar a camada vinculada ao d
-
-		$(report.list).each(function(_i,_d){
-			if(d.region == _d.region && d.regionType == _d.regionType && d.id == _d.id){
-				remove_layer(_d)
-				remove_mirror(_d)
-				report.list.splice(_i,1)
-				_d = null
-			}
-		})
-		*/
-
 	}
+
+	check_categ()
+
 	console.log('update_report: ', report);
 	sessionStorage.setItem('report', JSON.stringify(report))
 	count_report()
@@ -708,12 +714,10 @@ function update_report(d){
 function check_layers(){
 	if(report.list.length > 0){
 		$(msg_layers).hide()
-		$(msg_report).hide()
 		$(layers_list).show()
 		$(sort_layers_msg).show()
 	}else{
 		$(msg_layers).show()
-		$(msg_report).show()
 		$(layers_list).hide()
 		$(sort_layers_msg).hide()
 	}
@@ -805,22 +809,47 @@ function create_categ_filter(i, lb, sel){
 
 function set_categ_filter(itm){
 	CATEG.id = itm.ID
+	CATEG.name = itm.categ
 	$(CATEG.itens).each(function(i,d){
 		if(i == itm.ID) $(d).addClass('selected')
 		else $(d).removeClass('selected')
 	})
 
-	// indicators list
-	$(DATA.list).each(function(i,d){
-		if( itm.ID > 0 && d.categ.indexOf(itm.categ) < 0 ) $(d).addClass('hide')
-		else $(d).removeClass('hide')
-	})
+	check_categ()
 
 	//bt label
 	$(indicators_bt_lb2).html(itm.lb)
 
 	close_floatings()
 	check_filters()
+}
+
+function check_categ(){
+	// indicators list
+	var listed = 0
+	$(DATA.list).each(function(i,d){
+		if(CATEG.id == 0){
+			$(d).removeClass('hide')
+			listed++
+		}else if( CATEG.id == 1 ){
+			if( !d.selected ) {
+				$(d).addClass('hide')
+			}else{
+				 $(d).removeClass('hide')
+				 listed++
+			}
+		}else{
+			if( d.categ.indexOf(CATEG.name) < 0 ){
+				$(d).addClass('hide')
+			}else{
+				$(d).removeClass('hide')
+				listed++
+			}
+		}
+	})
+
+	if(listed > 0) $(msg_indicators).hide()
+	else $(msg_indicators).show()
 }
 
 // clear filters

@@ -75,6 +75,14 @@ var language = {
 		_pt:'NOVA CAMADA',
 		_en:'NEW LAYER'
 	},
+	remove:{
+		_pt:'REMOVER',
+		_en:'REMOVE'
+	},
+	download:{
+		_pt:'BAIXAR',
+		_en:'DOWNLOAD'
+	},
 	remove_layers:{
 		_pt:'REMOVER CAMADAS',
 		_en:'REMOVE LAYERS'
@@ -131,6 +139,10 @@ var language = {
 		_pt:'INDICADORES SELECIONADOS',
 		_en:'SELECTED INDICATORS'
 	},
+	selected:{
+		_pt:'SELECIONADOS',
+		_en:'SELECTED'
+	},
 	remove_all_indicators:{
 		_pt:'REMOVER TODOS OS INDICADORES',
 		_en:'REMOVE ALL INDICATORS'
@@ -138,6 +150,10 @@ var language = {
 	clear_filters:{
 		_pt:'REMOVER FILTROS',
 		_en:'CLEAR FILTERS'
+	},
+	clear:{
+		_pt:'LIMPAR ',
+		_en:'CLEAR'
 	},
 	indicators:{
 		_pt:'INDICADORES',
@@ -162,8 +178,12 @@ var language = {
 	edit:{
 		_pt:'EDITAR',
 		_en:'EDIT'
-	}
-	,read_more:{
+	},
+	opacity:{
+		_pt:'OPACIDADE',
+		_en:'OPACITY'
+	},
+	read_more:{
 		_pt:'SAIBA MAIS',
 		_en:'READ MORE'
 	},
