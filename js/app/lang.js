@@ -155,6 +155,14 @@ var language = {
 		_pt:'LIMPAR ',
 		_en:'CLEAR'
 	},
+	search:{
+		_pt:'BUSCAR ',
+		_en:'SEARCH'
+	},
+	search_city:{
+		_pt:'Buscar município',
+		_en:'Search city'
+	},
 	indicators:{
 		_pt:'INDICADORES',
 		_en:'INDICATORS'

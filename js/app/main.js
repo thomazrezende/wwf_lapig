@@ -200,16 +200,7 @@ function scroll_to(para, shift){
 	}
 	$(dbody).stop(true).scrollTo( destino, {duration:animate4, esaing:in_out, axis:'y'});
 }
-
-window.onkeydown = function (event) {
-	if(event.which == 27){
-		console.log('esc')
-	}
-	if(event.which == 13){
-		console.log('enter')
-	}
-}
-
+ 
 window.onscroll = verifica_scroll;
 
 function verifica_scroll(){

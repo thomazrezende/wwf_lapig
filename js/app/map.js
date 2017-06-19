@@ -1,16 +1,9 @@
 /*
 proximos passos:
 
-1. incluir o botão EXIBIR CAMADAS SELECIONADAS + funcionamento
-2. incluir botão EXCLUIR TODAS AS CAMADAS (prompt)
-3. BOTÃO INFERIR vira GERAR RELATORIO, pegando camadas selecionadas e montando
-os dados completos (precisa ver a questão dos rankings e evoluções)
 4. verificar questão da sincronia de dados com filtros espaciaias
-5. puxar dados nas camadas do mapa
-6. resolver problema das listas de municípios no area-filter
+6. resolver problema das listas de municípios no area-filter *
 7. clique no municipio no mapa chama aba relatório com dados do municipio
-
-Indicador de área plantada de soja: http://m2.lapig.iesa.ufg.br/ows?EXCEPTIONS=application%2Fvnd.ogc.se_xml&TRANSPARENT=TRUE&VERSION=1.1.1&SERVICE=WMS&REQUEST=GetLegendGraphic&LAYER=area_soja&format=image%2Fpng
 
 */
 
@@ -194,6 +187,9 @@ $(msg_layers).html(language['no_indicators'][lang])
 
 var msg_indicators = elem('li', {cls:'no_indicators_msg', trg:indicators})
 $(msg_indicators).html(language['no_indicators'][lang])
+
+var msg_report = elem('li', {cls:'no_indicators_msg', trg:report_indicators})
+$(msg_report).html(language['no_indicators'][lang])
 
 var sort_layers_msg = elem('div', {id:'sort_layers_msg', trg:layers})
 $(sort_layers_msg).html(language['sort_msg'][lang])
@@ -458,7 +454,7 @@ DATA.update_indicators_data = function(regionType, region){
 
 	$(DATA.list).each(function(i,d){
 		//label
-		$(d.area_label).html(get_area_label(regionType, region))
+		// $(d.area_label).html(get_area_label(regionType, region))
 		// //dado
 		// caso o issue SINCRONIA não seja possível de resolver, capturar novos dados assim:
 		// 1. procurar ano atual no d.ano[]
@@ -556,8 +552,8 @@ function create_indicator(d){
 	var title = elem('label', {trg:indicator, cls:'animate1 title'})
 
 	var title_name = elem('span', {trg:title, html:d.nome})
-	var title_div = elem('span', {trg:title, html:' | '})
-	indicator.area_label = elem('span', {trg:title, html:'BRASIL'})
+	// var title_div = elem('span', {trg:title, html:' | '})
+	// indicator.area_label = elem('span', {trg:title, html:'BRASIL'})
 	title_div = elem('span', {trg:title, html:' | '})
 
 	var year = elem( 'span', { trg:title })
@@ -714,10 +710,12 @@ function update_report(d){
 function check_layers(){
 	if(report.list.length > 0){
 		$(msg_layers).hide()
+		$(msg_report).hide()
 		$(layers_list).show()
 		$(sort_layers_msg).show()
 	}else{
 		$(msg_layers).show()
+		$(msg_report).show()
 		$(layers_list).hide()
 		$(sort_layers_msg).hide()
 	}
@@ -739,13 +737,22 @@ set('report_container')
 
 $(report_bt).on('click',function(){
 	if(report_container.open){
-		report_container.open = false
-		$(report_container).removeClass('open')
+		close_report()
 	}else{
-		report_container.open = true
-		$(report_container).addClass('open')
+		open_report()
+		close_floatings()
 	}
 })
+
+function close_report(){
+	report_container.open = false
+	$(report_container).removeClass('open')
+}
+
+function open_report(){
+	report_container.open = true
+	$(report_container).addClass('open')
+}
 
 
 // sessionStorage.clear()
@@ -862,9 +869,11 @@ set('area_main_ul')
 set('areas_bt_lb2')
 var AREA = {}
 AREA.itens = []
+AREA.municipios = []
 AREA.id = 0
 var d,m
 var area_brasil
+var search_bt, search_cancel_bt
 
 // etapa 1
 AREA.load_floating_lists = function(){
@@ -886,11 +895,34 @@ AREA.load_floating_lists = function(){
 	set_area_filter(area_brasil)
 }
 
+function submit_search(){
+	if(search.value != ''){
+		$(search_bt).hide()
+		$(search_cancel_bt).show()
+	}
+}
+
+function reset_search(){
+	$(search_cancel_bt).hide()
+	$(search_bt).show()
+}
+
+window.onkeydown = function (event) {
+	if(search.value != '' && search.focus ){
+		if(event.which == 27){
+			search.value = ''
+		}
+		if(event.which == 13){
+			  submit_search()
+		}
+	}
+}
 
 // etapa 2
 function create_area_list(bt_origin, lb, itens){
 
 	var container = elem('div', {trg:area_filters, cls:'floating_list list_container animate2'})
+	$(container).hide()
 
 	// botão de acesso a essa lista (inserido em outra lista: bt_origin)
 	area_filter_li(language[lb.toLowerCase()][lang], bt_origin, container, false, false )
@@ -898,7 +930,7 @@ function create_area_list(bt_origin, lb, itens){
 	// cria espaço para botão back
 	var back_bt = elem('div', {trg:container, cls:'floating_list_back'})
 	$(back_bt).on('click', function(){
-		$(this.container).removeClass('show')
+		$(this.container).hide()
 	})
 	back_bt.container = container
 
@@ -908,7 +940,7 @@ function create_area_list(bt_origin, lb, itens){
 	// cria lista
 	var filter_ul = elem('ul', {trg: container, cls:'floating_list list_content'})
 	// insere padding do bt voltar
-	$(filter_ul).css({paddingTop:80})
+	$(filter_ul).css({top:80, paddingTop:20, height:'calc(100% - 80px)'})
 
 	// cria botões dentro da lista
 	switch(lb){
@@ -921,12 +953,54 @@ function create_area_list(bt_origin, lb, itens){
 		break
 
 		case 'Municipios':
-			// for( m in itens ){
-				//  AREA.json[d][m] = objeto do municipio
-				//  create_area_list(area_main_ul, lb , itens[m], true)
-				// console.log(itens[m]);
-				// d.nome = label | d.cod_mu = código | d = UF
-			// }
+
+			// sobrescreve dados para acomodar search field
+			$(filter_ul).css({top:80, paddingTop:20, height:'calc(100% - 160px)'})
+
+			// search field
+			var search = elem('input', {trg:container, id:'search'})
+			$(search).attr('placeholder', language.search_city[lang])
+
+			//search_bt
+			search_bt = elem('div', {trg:container,  id:'search_bt'})
+			$(search_bt).on('click', function(){
+				submit_search()
+			})
+
+			var label = elem('label', {trg:search_bt, cls:'animate1 bt_label', html:language.search[lang]})
+			var icon = elem('div', {trg:search_bt, cls:'icon icon25 animate1 bt_icon'})
+			$(icon).append(icons.lupa)
+
+			//search_cancel_bt
+			search_cancel_bt = elem('div', {trg:container,  id:'search_cancel_bt'})
+			$(search_cancel_bt).on('click', function(){
+				reset_search()
+			})
+			$(search_cancel_bt).hide()
+
+			var label = elem('label', {trg:search_cancel_bt, cls:'animate1 bt_label', html:language.cancel[lang]})
+			var icon = elem('div', {trg:search_cancel_bt, cls:'icon icon25 animate1 bt_icon'})
+			$(icon).append(icons.x)
+
+			$(search).on('focus',function(){
+				search.focus = true
+				console.log(search.focus);
+			})
+
+			$(search).on('blur',function(){
+				search.focus = false
+				console.log(search.focus);
+			})
+
+			// lista de municípios
+			for(var i in itens){
+				$(itens[i]).each(function(_i,_d){
+					var li = area_filter_li(i + ' - ' + _d.nome, filter_ul, false, 'municipio', _d.cod_mu);
+					AREA.municipios.push(li)
+				})
+			}
+
+
 		break
 
 		case 'Biomas':
@@ -982,8 +1056,8 @@ function area_filter_li(lb, trg, list, regionType, region){
 }
 
 function call_area_list(list){
-	$(AREA.current_list).removeClass('show')
-	$(list).addClass('show')
+	// $(AREA.current_list).hide()
+	$(list).show()
 	AREA.current_list = list
 }
 
