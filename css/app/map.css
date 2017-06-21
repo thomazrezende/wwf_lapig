@@ -94,9 +94,13 @@
 	position: absolute;
 	height: 100%;
 	top: 0;
-	left: 0;
+	left: 100%;
 	border-left: #fff 3px solid;
 	border-right: #fff 3px solid;
+}
+
+.list_container.show{
+	left: 0;
 }
 
 .list_content{
@@ -597,7 +601,7 @@
 	color: #fff;
 	background: #33cccc;
 	cursor: pointer;
-	font-size: 18px;
+	font-size: 16px;
 	cursor: pointer;
 	z-index: 2;
 	border: none;
@@ -639,6 +643,12 @@
 
 #search_cancel_bt:hover label, #search_cancel_bt:hover .icon {
 	opacity: 1;
+}
+
+#search_results{
+	padding-left: 30px;
+	margin-bottom: 15px;
+	font-size: 14px;
 }
 
 /* report_container */
@@ -1376,31 +1386,20 @@
 	right: 35px;
 }
 
-/* REPORT LIST */
-
 
 /* PRELOADER */
 
 #preloader{
-	position: fixed;
-	width:100%;
-	height: 100%;
-	background: rgba(20,36,51,.9);
+	position: absolute;
+	width:100px;
+	height: 100px;
 	z-index: 100;
 	top:0;
+	bottom: 0;
 	left: 0;
-	opacity: 0;
+	right: 0;
 	pointer-events: none;
-}
-
-.preloader_mode #preloader{
-	opacity: 1;
-	pointer-events: all;
-}
-
-.preloader_mode{
-	pointer-events: none;
-	overflow: hidden;
+	background: #f00;
 }
 
 .loader{

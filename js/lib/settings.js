@@ -21,14 +21,15 @@ requirejs.config({
       'jquery-easing'         :{ deps:['jquery']},
       'jquery-scrollTo'       :{ deps:['jquery']},
       'jquery-ui'             :{ deps:['jquery']},
+      'defiant'               :{ deps:['jquery']},
       'leaflet'               :{ deps:['jquery']},
       // 'gmaps'                 :{ deps:['jquery','leaflet']},
       'leaflet.googlemutant'  :{ deps:['jquery','leaflet']},
       //app
-      'app/icons'             :{ deps:['jquery','leaflet']},
-      'app/main'              :{ deps:['jquery','leaflet','app/icons']},
-      'app/lang'              :{ deps:['jquery','leaflet','app/icons','app/main' ]},
-      'app/navigation'        :{ deps:['jquery','leaflet','app/icons','app/main','app/lang' ]}
+      'app/icons'             :{ deps:['jquery','leaflet','defiant']},
+      'app/main'              :{ deps:['jquery','leaflet','defiant','app/icons']},
+      'app/lang'              :{ deps:['jquery','leaflet','defiant','app/icons','app/main' ]},
+      'app/navigation'        :{ deps:['jquery','leaflet','defiant','app/icons','app/main','app/lang' ]}
    }
 });
 
@@ -41,6 +42,7 @@ require([
   'jquery-scrollTo',
   'jquery-ui',
   'jquery-ui',
+  'defiant',
   'leaflet',
   // 'gmaps',
   'leaflet.googlemutant',

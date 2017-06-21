@@ -109,19 +109,17 @@ function format_number(nStr){
 
 //////////////////////////// preloader
 
-function set_preloader(){
-	preloader = elem('div', {trg: dbody, id:'preloader', cls: 'animate3'})
+function set_preloader(trg){
+	preloader = elem('div', {trg: trg, id:'preloader', cls: 'animate3'})
 	loader = elem('div', {trg: preloader, cls: 'loader'})
 	elem('span', {trg: loader})
 	elem('span', {trg: loader})
 	elem('span', {trg: loader})
 	elem('span', {trg: loader})
 	elem('span', {trg: loader})
-	$(dbody).addClass('preloader_mode')
 }
 
 function remove_preloader(){
-	$(dbody).removeClass('preloader_mode')
 	setTimeout( function(){
 		$(preloader).remove()
 	}, animate4)
@@ -200,7 +198,7 @@ function scroll_to(para, shift){
 	}
 	$(dbody).stop(true).scrollTo( destino, {duration:animate4, esaing:in_out, axis:'y'});
 }
- 
+
 window.onscroll = verifica_scroll;
 
 function verifica_scroll(){
@@ -240,6 +238,10 @@ function removeAccents(str) {
 		}
 	}
 	return str.join('')
+}
+
+function removeSpaces(str, glue){
+	return str.split(' ').join(glue)
 }
 
 //////////////////////////// map functions

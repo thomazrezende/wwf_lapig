@@ -869,11 +869,13 @@ set('area_main_ul')
 set('areas_bt_lb2')
 var AREA = {}
 AREA.itens = []
-AREA.municipios = []
+AREA.municipios = {}
+AREA.municipios.list = []
 AREA.id = 0
 var d,m
 var area_brasil
-var search_bt, search_cancel_bt
+var search_bt, search_cancel_bt, search_results, search_container
+var municipios_ul
 
 // etapa 1
 AREA.load_floating_lists = function(){
@@ -895,16 +897,43 @@ AREA.load_floating_lists = function(){
 	set_area_filter(area_brasil)
 }
 
-function submit_search(){
-	if(search.value != ''){
+var results = 0;
+
+function submit_search(trg){
+	var val = search.value
+	if( val != ''){
 		$(search_bt).hide()
 		$(search_cancel_bt).show()
+
+		$(municipios_ul).html(null)
+
+		console.log('search_for: ', val );
+		var _val = removeSpaces(removeAccents(val.toLowerCase()),'-')
+
+		// defiant.js
+		var searching = JSON.search(AREA.municipios, '//list[contains(index,"' + _val + '")]');
+
+		search_results = elem('li', {trg:municipios_ul, id:'search_results'})
+		$(search_results).html( '&raquo; ' + searching.length + ' resultado(s) para "' + val + '"'  )
+
+		$(searching).each(function(i,d){
+			area_filter_li(d.uf + ' - ' + d.nome, municipios_ul, false, 'municipio', d.cod_mu);
+		})
+
 	}
 }
 
 function reset_search(){
+	$(municipios_ul).html(null)
+	$(search_results).hide()
 	$(search_cancel_bt).hide()
 	$(search_bt).show()
+	search.value = ''
+
+	$(AREA.municipios.list).each(function(i,d){
+		area_filter_li(d.uf + ' - ' + d.nome, municipios_ul, false, 'municipio', d.cod_mu);
+	})
+
 }
 
 window.onkeydown = function (event) {
@@ -915,6 +944,26 @@ window.onkeydown = function (event) {
 		if(event.which == 13){
 			  submit_search()
 		}
+	}
+}
+
+function hide_list(list){
+	if(!list.trava){
+		$(list).removeClass('show')
+		list.trava = true
+		setTimeout(function(){
+			$(list).hide()
+			list.trava = false
+		}, animate4);
+	}
+}
+
+function show_list(list){
+	if(!list.trava){
+		$(list).show()
+		list.trava = true
+		setTimeout(function(){ $(list).addClass('show') }, 10);
+		setTimeout(function(){ list.trava = false  }, animate4);
 	}
 }
 
@@ -929,13 +978,22 @@ function create_area_list(bt_origin, lb, itens){
 
 	// cria espaço para botão back
 	var back_bt = elem('div', {trg:container, cls:'floating_list_back'})
-	$(back_bt).on('click', function(){
-		$(this.container).hide()
-	})
 	back_bt.container = container
+	back_bt.bt_lb = lb
+	$(back_bt)
+	.on('click', function(){
+		hide_list(this.container)
+	})
+	.mouseenter(function(){
+		$(this.label).text(language['back'][lang])
+	})
+	.mouseleave(function(){
+		$(this.label).text(language[this.bt_lb.toLowerCase()][lang])
+	})
 
 	var back_icon = elem('div', {trg:back_bt, cls:'animate1 icon icon15', apd:icons.left})
-	var back_icon = elem('label', {trg:back_bt, cls:'animate1', html:language['back'][lang]})
+	var back_label = elem('label', {trg:back_bt, cls:'animate1', html:language[lb.toLowerCase()][lang]})
+	back_bt.label = back_label
 
 	// cria lista
 	var filter_ul = elem('ul', {trg: container, cls:'floating_list list_content'})
@@ -956,6 +1014,9 @@ function create_area_list(bt_origin, lb, itens){
 
 			// sobrescreve dados para acomodar search field
 			$(filter_ul).css({top:80, paddingTop:20, height:'calc(100% - 160px)'})
+			municipios_ul = filter_ul
+
+			search_container = container
 
 			// search field
 			var search = elem('input', {trg:container, id:'search'})
@@ -984,22 +1045,25 @@ function create_area_list(bt_origin, lb, itens){
 
 			$(search).on('focus',function(){
 				search.focus = true
-				console.log(search.focus);
 			})
 
 			$(search).on('blur',function(){
 				search.focus = false
-				console.log(search.focus);
 			})
 
 			// lista de municípios
 			for(var i in itens){
 				$(itens[i]).each(function(_i,_d){
 					var li = area_filter_li(i + ' - ' + _d.nome, filter_ul, false, 'municipio', _d.cod_mu);
-					AREA.municipios.push(li)
+					var obj = {}
+					obj.li = li
+					obj.uf = i
+					obj.nome = _d.nome
+					obj.codigo = _d.cod_mu
+					obj.index = removeSpaces(removeAccents(_d.nome.toLowerCase()),'-')
+					AREA.municipios.list.push(obj)
 				})
 			}
-
 
 		break
 
@@ -1057,7 +1121,7 @@ function area_filter_li(lb, trg, list, regionType, region){
 
 function call_area_list(list){
 	// $(AREA.current_list).hide()
-	$(list).show()
+	show_list(list)
 	AREA.current_list = list
 }
 
