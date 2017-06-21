@@ -1,11 +1,3 @@
-/*
-proximos passos:
-
-4. verificar questão da sincronia de dados com filtros espaciaias
-6. resolver problema das listas de municípios no area-filter *
-7. clique no municipio no mapa chama aba relatório com dados do municipio
-
-*/
 
 console.log('--- module: map.js');
 
@@ -23,7 +15,10 @@ set('area_filters')
 
 set('report_bt')
 set('map_report')
-set('report_indicators')
+set('report_ul')
+
+var map_itens = []
+var report_itens = []
 
 $(dbody).addClass('data_mode')
 
@@ -60,6 +55,7 @@ function close_floatings(){
 
 	area_filters.open = false
 	category_filter.open = false
+	if(AREA.current_list) hide_list(AREA.current_list)
 }
 
 $(indicators_bt).on('click',function(){
@@ -173,7 +169,7 @@ $(layers_list).sortable({
 		$(sortedIDs).each(function(i,d){
 			var layer = get(d)
 			//map
-			$(map_layers).each(function(_i,_d){
+			$(map_itens).each(function(_i,_d){
 				if(	_d.obj == layer.obj ){
 					_d.setZIndex(sortedIDs.length - i )
 				}
@@ -188,7 +184,7 @@ $(msg_layers).html(language['no_indicators'][lang])
 var msg_indicators = elem('li', {cls:'no_indicators_msg', trg:indicators})
 $(msg_indicators).html(language['no_indicators'][lang])
 
-var msg_report = elem('li', {cls:'no_indicators_msg', trg:report_indicators})
+var msg_report = elem('li', {cls:'no_indicators_msg', trg:report_ul})
 $(msg_report).html(language['no_indicators'][lang])
 
 var sort_layers_msg = elem('div', {id:'sort_layers_msg', trg:layers})
@@ -329,8 +325,8 @@ function create_layer( d ){
 
 	wms_layer.obj = d
 	wms_layer.layer = layer
-	map_layers.push(wms_layer)
-	wms_layer.setZIndex( map_layers.length )
+	map_itens.push(wms_layer)
+	wms_layer.setZIndex( map_itens.length )
 
 	// refresh é FUNDAMENTAL sempre que incluir novos elementos
 	$(layers_list).sortable('refresh')
@@ -341,21 +337,21 @@ function create_layer( d ){
 }
 
 function remove_layer(d){
-	$(map_layers).each(function(_i,_d){
+	$(map_itens).each(function(_i,_d){
 		if(_d.obj == d){
 			// list
 			$(_d.layer).remove()
 			_d.layer = null
 			// map
 			map.removeLayer(_d)
-			map_layers.splice( map_layers.indexOf(_d), 1)
+			map_itens.splice( map_itens.indexOf(_d), 1)
 			_d = null
 		}
 	})
 }
 
 function toggle_layer(d, show){
-	$(map_layers).each(function(_i,_d){
+	$(map_itens).each(function(_i,_d){
 		if(_d.obj == d){
 			if(show) map.addLayer(_d)
 			else map.removeLayer(_d)
@@ -375,7 +371,7 @@ function search_indicator(d){
 
 /*
 function create_mirror(d){
-	var mirror = elem('li', {trg: report_indicators, cls:'indicator mirror'})
+	var mirror = elem('li', {trg: report_ul, cls:'indicator mirror'})
 	d.mirror = mirror
 
 	var icon_x = elem('div', { trg:mirror, cls:'icon uncheck animate1 icon25' })
@@ -407,6 +403,7 @@ function remove_mirror(d){
 set('clear_report')
 
 $(clear_report).on('click', function(){
+	$(report_ul).html(null)
 	$(DATA.list).each(function(i,d){
 		if(d.selected) toggle_check_indicator(d)
 	})
@@ -452,10 +449,16 @@ DATA.create_indicators_list = function(){
 DATA.update_indicators_data = function(regionType, region){
 	console.log("update_indicators_data!!");
 
-	$(DATA.list).each(function(i,d){
-		//label
-		// $(d.area_label).html(get_area_label(regionType, region))
-		// //dado
+	$(DATA.list).each(function(i,d){ // LISTA DE INDICADORES NO PAINEL
+		$(DATA.json).each(function(_i,_d){
+
+			if(d.id == _d.id){
+				// set default data
+				indicator_data(d, _d.ano, _d.valor)
+			}
+		})
+
+		//dado
 		// caso o issue SINCRONIA não seja possível de resolver, capturar novos dados assim:
 		// 1. procurar ano atual no d.ano[]
 		// 2. se achar, pegar o val_id
@@ -515,6 +518,35 @@ function convert_lb(lb){
 }
 
 // etapa 7
+function indicator_data(indicator, anos, valores){
+
+	indicator.ano = anos.reverse()
+	indicator.valor = valores.reverse()
+	indicator.val_id = 0
+
+	// ano
+	if( indicator.ano.length > 1 ){
+		$(indicator.year)
+		.addClass('plus')
+		.html(indicator.ano[0] + ' (+)')
+	}else{
+		$(indicator.year).html(indicator.ano[0])
+	}
+
+	// select
+	$(indicator.data_select).html(null)
+	$(indicator.ano).each(function(_i,_d){
+		var data_opt = elem('option', {trg:indicator.data_select, cls:'data_opt'})
+		$(data_opt)
+		.html(_d )
+		.attr('value',_i)
+		if(_i == 0) $(data_opt).attr('selected','selected')
+	})
+
+	// valor
+	$(indicator.data).html(format_number(indicator.valor[0]) + ' ' + indicator.unidade)
+}
+
 function create_indicator(d){
 
 	var indicator = elem('li', {trg:indicators_list, cls:'indicator animate2'})
@@ -526,13 +558,8 @@ function create_indicator(d){
 	indicator.descricao = d.descricao
 	indicator.categ = normalize_categs(d.categ)
 	indicator.unidade = d.unidade
-	indicator.ano = d.ano.reverse()
-	indicator.valor = d.valor.reverse()
+
 	indicator.tipo = d.tipo
-	indicator.val_id = 0
-	// indicator.regionType = regionType
-	// indicator.region = region
-	// indicator.area_label = get_area_label(regionType, region)
 
 	DATA.list.push(indicator)
 
@@ -559,16 +586,7 @@ function create_indicator(d){
 	var year = elem( 'span', { trg:title })
 	indicator.year = year
 
-	if( indicator.ano.length > 1 ){
-		$(year)
-		.addClass('plus')
-		.html(indicator.ano[0] + ' (+)')
-	}else{
-		$(year).html(indicator.ano[0])
-	}
-
 	var data = elem('label', {trg:indicator, cls:'animate1 data'})
-	$(data).html(format_number(indicator.valor[0]) + ' ' + d.unidade)
 	indicator.data = data
 
 	var arrow = elem('div', {trg:indicator, cls:'icon arrow animate1 icon15' })
@@ -591,17 +609,10 @@ function create_indicator(d){
 		$(this.indicator.year).html( indicator.ano[val] + ' (+)' )
 	})
 	data_select.indicator = indicator
+	indicator.data_select = data_select
 
 	var data_select_icon = elem('div', {trg:data_box_bts, cls:'data_select_icon icon15'})
 	$(data_select_icon).append(icons.down)
-
-	$(indicator.ano).each(function(_i,_d){
-		var data_opt = elem('option', {trg:data_select, cls:'data_opt'})
-		$(data_opt)
-		.html(_d )
-		.attr('value',_i)
-		if(_i == indicator.ano[0]) $(data_opt).attr('selected','selected')
-	})
 
 	var data_add = elem('div', {trg:data_box_bts, cls:'data_add animate2'})
 	$(data_add).on('click', function(){
@@ -615,6 +626,9 @@ function create_indicator(d){
 
 	var data_add_icon = elem('div', {trg:data_add, cls:'icon icon15 animate2'})
 	$(data_add_icon).append(icons.plus)
+
+	// set default data
+	indicator_data(indicator, d.ano, d.valor)
 
 }
 
@@ -650,7 +664,7 @@ function reset_indicators(){
 }
 
 function reset_layers(){
-	$(map_layers).each(function(i,d){
+	$(map_itens).each(function(i,d){
 		close_layer(d.layer)
 	})
 }
@@ -679,13 +693,15 @@ function update_report(d){
 			//regionType: d.regionType,
 			id: d.id,
 			// area_label:d.area_label,
+			anos:d.ano,
 			ano:d.ano[d.val_id],
+			valores:d.valor,
 			valor:d.valor[d.val_id],
 			unidade:d.unidade,
+			descricao:d.descricao,
 			nome:d.nome
 		}
 		create_layer(report_ind)
-		// create_mirror(report_ind)
 		report.list.push(report_ind)
 	}else{
 		console.log('remove');
@@ -693,6 +709,7 @@ function update_report(d){
 		$(report.list).each(function(_i,_d){
 			if( _d.id == d.id){
 				remove_layer(_d)
+				remove_report(_d)
 				report.list.splice(_i,1)
 				_d = null
 			}
@@ -705,6 +722,75 @@ function update_report(d){
 	sessionStorage.setItem('report', JSON.stringify(report))
 	count_report()
 	check_layers()
+
+}
+
+set('report_ul')
+
+function remove_report(d){
+
+	// $(report_itens).each(function(_i,_d){
+	// 	if(_d.obj == d){
+	// 		$(_d).remove()
+	// 		report_itens.splice(_i,1)
+	// 	}
+	// })
+
+}
+
+function create_report(d){
+
+	var indicator = elem('li', {trg:report_ul, cls:'indicator'})
+	indicator.obj = d
+
+	// report_itens.push(indicator)
+
+	var hr = elem('div', {trg:indicator, cls:'report_hr', html:'&mdash;'})
+	var header = elem('div', {trg:indicator, cls:'header'})
+
+	var title = elem('div', {trg:header, cls:'title', html:d.nome + ' | ' + d.ano[d.val_id]})
+	var data = elem('div', {trg:header, cls:'data', html:format_number(d.valor[d.val_id]) + ' ' + d.unidade})
+	var text = elem('div', {trg:indicator, cls:'text', html:d.descricao})
+
+	if(d.ano.length > 1){
+
+		var evolution = elem('div', {trg:indicator, cls:'evolution'})
+
+		evolution.max = 0
+		evolution.itens = []
+
+		$(d.ano).each(function(_i,_d){
+
+			if(evolution.max < d.valor[_i]) evolution.max = d.valor[_i]
+
+			var ano = elem('div', {trg:evolution, cls:'ano' })
+			var ano_lb = elem('div', {trg:ano, cls:'ano_lb', html:_d })
+			var bar = elem('div', {trg:ano, cls:'bar'})
+		  var label = elem( 'div', {trg: ano, cls:'label', html:  format_number(d.valor[_i]) + ' ' + d.unidade })
+
+			if(_i == d.val_id ) $(ano).addClass('selected')
+
+			ano.bar = bar
+			ano.val = d.valor[_i]
+
+			evolution.itens.push(ano)
+
+		})
+
+		evolution.max *= 1.1
+
+		$(evolution.itens).each(function(i,d){
+			$(d.bar).css({width: d.val / evolution.max * 100 + '%'})
+		})
+
+	}
+
+	var ranking = elem('div', {trg:indicator, cls:'ranking', html:'ranking de municípios'})
+	//ranking chart
+
+	report_ul.append(indicator)
+
+
 }
 
 function check_layers(){
@@ -734,12 +820,15 @@ function blink(dir){
 // REPORT indicators
 
 set('report_container')
+set('report_bt_label')
+set('report_category')
+set('report_area')
 
 $(report_bt).on('click',function(){
 	if(report_container.open){
 		close_report()
 	}else{
-		open_report()
+		generate_report()
 		close_floatings()
 	}
 })
@@ -747,13 +836,22 @@ $(report_bt).on('click',function(){
 function close_report(){
 	report_container.open = false
 	$(report_container).removeClass('open')
+	$(report_bt_label).text( language['generate_report'][lang])
 }
 
-function open_report(){
+function generate_report(){
+
+	$(report_ul).html(null)
+	$(DATA.list).each(function(i,d){
+		if(d.selected){
+			create_report(d)
+		}
+	})
+
 	report_container.open = true
 	$(report_container).addClass('open')
+	$(report_bt_label).text( language['close_report'][lang])
 }
-
 
 // sessionStorage.clear()
 var report = { list:[] }
@@ -763,9 +861,7 @@ function check_session_report(){
 	if(report_str) report = JSON.parse(report_str)
 	if(report.list.length > 0){
 		$(report.list).each(function(i,d){
-			// + create report_item
 			create_layer(d)
-			// create_mirror(d)
 		})
 		blink('in')
 	}
@@ -780,7 +876,6 @@ function check_indicators_on(){
 		})
 	})
 }
-
 
 function count_report(){
 	$(layers_counter).html( report.list.length )
@@ -863,6 +958,24 @@ function check_categ(){
 
 // area filter
 
+/*
+Sample XPath defiant.js
+//*
+//book > todos os itens dentro do array 'book'
+//category > todas as categorias dentro dos itens
+//@price > o attr @price
+//title > o attr title
+//title/text() > o texto do attr title
+//bicycle  > todos os itens dentro do array 'bicycle'
+//book[3] > o terceiro item do array 'book'
+//book[position() <= 2] > todos os itens do array 'book' antes do iten 3
+//book[last()] > o ultimo item do aray 'book'
+//*[@price > 10] > itens do o attr price > 10
+//*[category="reference"]/author > retornar o attr 'author' onde a category for 'refernce'
+//*[contains(title, "the")] > itens onde o attr 'title' contenham a palavra 'the'
+//book[isbn] > itens em 'book' que contenham o attr 'isbn'
+*/
+
 set('area_filters')
 set('area_main_list')
 set('area_main_ul')
@@ -879,8 +992,6 @@ var municipios_ul
 
 // etapa 1
 AREA.load_floating_lists = function(){
-
-	AREA.current_list = area_main_ul
 
 	area_brasil = area_filter_li( language['brasil'][lang], area_main_ul, false, 'brasil', 'brasil' )
 
@@ -956,6 +1067,7 @@ function hide_list(list){
 			list.trava = false
 		}, animate4);
 	}
+	AREA.current_list = false
 }
 
 function show_list(list){
@@ -969,6 +1081,8 @@ function show_list(list){
 
 // etapa 2
 function create_area_list(bt_origin, lb, itens){
+
+	AREA.current_list = false
 
 	var container = elem('div', {trg:area_filters, cls:'floating_list list_container animate2'})
 	$(container).hide()
@@ -1064,7 +1178,6 @@ function create_area_list(bt_origin, lb, itens){
 					AREA.municipios.list.push(obj)
 				})
 			}
-
 		break
 
 		case 'Biomas':
@@ -1120,7 +1233,6 @@ function area_filter_li(lb, trg, list, regionType, region){
 }
 
 function call_area_list(list){
-	// $(AREA.current_list).hide()
 	show_list(list)
 	AREA.current_list = list
 }
@@ -1128,6 +1240,8 @@ function call_area_list(list){
 // etapa 4
 function set_area_filter(itm){
 	console.log('set_area_filter: ' + itm.lb);
+	console.log(itm);
+
 	var id = itm.ID
 	AREA.id = id;
 	$(AREA.itens).each(function(i,d){
@@ -1138,7 +1252,7 @@ function set_area_filter(itm){
 	close_floatings()
 	check_filters()
 
-	// 1 carrega dados novos nos indicadores
+	// 1 carrega dados novos nos indicadores (list + report)
 
 	var url = 'data/lista'
 	if(itm.regionType != 'brasil' ) url += '_' + itm.regionType
@@ -1151,23 +1265,12 @@ function set_area_filter(itm){
 	// 2 carrega mascara no mapa
 
 
-	/*
-	mudança aqui: não será mais um recarregamento + gerar lista
 
-	versao antiga:
-	// etapa 5: call indicators list
-	// var url = 'http://maps.lapig.iesa.ufg.br/indicadores/lista'
-	// if(itm.regionType != 'brasil' && itm.region != 'brasil') url += '?regionType=' + itm.regionType + '&region=' + itm.region
-	// + &lang=convert_lang(lang)
+	// 3 muda dados no report header
 
-	var url = 'data/lista'
-	if(itm.regionType != 'brasil' ) url += '_' + itm.regionType
-	if(itm.region != 'brasil' ) url += '_' + itm.region
-	url += '.json'
-
-	ajax( url, DATA, 'create_indicators_list', [itm.regionType, itm.region] )
-
-	*/
+	if(itm.regionType != 'brasil') $(report_category).html(itm.regionType)
+	else $(report_category).html('')
+	$(report_area).html( itm.lb.toLowerCase())
 
 }
 

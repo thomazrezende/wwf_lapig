@@ -21,9 +21,9 @@ requirejs.config({
       'jquery-easing'         :{ deps:['jquery']},
       'jquery-scrollTo'       :{ deps:['jquery']},
       'jquery-ui'             :{ deps:['jquery']},
+      'd3'                    :{ deps:['jquery']},
       'defiant'               :{ deps:['jquery']},
       'leaflet'               :{ deps:['jquery']},
-      // 'gmaps'                 :{ deps:['jquery','leaflet']},
       'leaflet.googlemutant'  :{ deps:['jquery','leaflet']},
       //app
       'app/icons'             :{ deps:['jquery','leaflet','defiant']},
@@ -42,9 +42,8 @@ require([
   'jquery-scrollTo',
   'jquery-ui',
   'jquery-ui',
-  'defiant',
+  'defiant', // defiantjs.com
   'leaflet',
-  // 'gmaps',
   'leaflet.googlemutant',
   //app
   'app/icons',

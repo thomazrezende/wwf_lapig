@@ -130,7 +130,7 @@
 #indicators_list::-webkit-scrollbar-thumb{ background-color:#ccc; border:#fff 1px solid; }
 #indicators_list::-webkit-scrollbar-thumb:hover { background-color:#33cccc }
 
-.indicator{
+#indicators_list .indicator{
 	width: 100%;
 	height: 80px;
 	border-bottom: #fff 1px solid;
@@ -140,32 +140,29 @@
 	overflow: hidden;
 }
 
-.indicator:hover{
+#indicators_list .indicator:hover{
 	background: #fff;
 }
 
-.indicator.mirror{
+#indicators_list .indicator.mirror{
 	cursor: default;
 }
 
-.indicator.mirror:hover{
+#indicators_list .indicator.mirror:hover{
 	background: #f0f5f5;
 }
 
-.indicator.mirror .uncheck{
+#indicators_list .indicator.mirror .uncheck{
 	fill: #e1e5e5;
 	z-index: 2;
 	cursor:pointer;
 }
 
-.indicator.mirror .uncheck:hover{
+#indicators_list .indicator.mirror .uncheck:hover{
 	fill: #db6559;
 }
 
-
-
-
-.indicator .title{
+#indicators_list .indicator .title{
 	width: calc(100% - 160px);
 	height: 14px;
 	color: #666;
@@ -180,13 +177,12 @@
 	text-transform: uppercase;
 }
 
-.indicator .plus{
+#indicators_list .indicator .plus{
 	color: #33cccc;
 	font-weight: 600;
 }
 
-
-.indicator .data{
+#indicators_list .indicator .data{
 	width: calc(100% - 160px);
 	height: 24px;
 	line-height: 24px;
@@ -201,14 +197,14 @@
 	pointer-events: none;
 }
 
-.indicator .icon{
+#indicators_list .indicator .icon{
 	position: absolute;
 	top: 0;
 	width: 80px;
 	height: 80px;
 }
 
-.indicator .hit{
+#indicators_list .indicator .hit{
 	position: absolute;
 	width: 100%;
 	height: 80px;
@@ -218,28 +214,28 @@
 	cursor: pointer;
 }
 
-.indicator .arrow{
+#indicators_list .indicator .arrow{
 	fill: #33cccc;
 	right: 0;
 }
 
-.indicator .check{
+#indicators_list .indicator .check{
 	fill: #e1e5e5;
 	z-index: 2;
 	cursor:pointer;
 }
 
-.indicator .check:hover{
+#indicators_list .indicator .check:hover{
 	fill: #33cccc;
 }
 
-.indicator.selected .check{	fill: #bcdc84; }
+#indicators_list .indicator.selected .check{	fill: #bcdc84; }
 
-.indicator.open {
+#indicators_list .indicator.open {
 	background: #fff;
 }
 
-.indicator.hide{
+#indicators_list .indicator.hide{
 	display: none;
 }
 
@@ -321,7 +317,7 @@
 .data_add .lb_off{	display: inline }
 .selected .data_add .lb_off{	display: none }
 
-.data_add .icon{
+#indicators_list .data_add .icon{
 	position: absolute;
 	right: 0;
 	width: 50px;
@@ -653,7 +649,6 @@
 
 /* report_container */
 
-
 #report_container{
 	width: 100%;
 	height: 80px;
@@ -668,15 +663,136 @@
 	height:100%;
 }
 
-#report_indicators{
+#report_content{
 	position: absolute;
 	top: 80px;
 	height: calc(100% - 80px);
+	width: 100%;
 	overflow-y: auto;
 	overflow-x: hidden;
 	border:#fff 3px solid;
 	border-top: none;
+	color: #333;
+	padding: 30px;
 }
+
+#report_content::-webkit-scrollbar{ width:10px; height:10px; }
+#report_content::-webkit-scrollbar-track { background-color: #fff; border-left: #fff 1px solid}
+#report_content::-webkit-scrollbar-thumb{ background-color:#ccc; border:#fff 1px solid; }
+#report_content::-webkit-scrollbar-thumb:hover { background-color:#33cccc }
+
+#report_area{
+	width: 100%;
+	padding-top: 5px;
+	font-size: 30px;
+	font-weight: 300;
+	color: #33cccc;
+	text-transform: capitalize;
+}
+
+#report_content .header{
+ width: 100%;
+ position: relative;
+ margin-bottom: 20px;
+}
+
+#report_content .data{
+	padding-top: 5px;
+	font-size: 21px;
+	font-weight: 400;
+	color: #33cccc;
+}
+
+#report_content .text{
+	color: #666;
+	font-size: 13px;
+	line-height: 18px;
+	margin-bottom: 15px;
+}
+
+#report_content .title{
+	color:#666;
+	font-size: 12px;
+	line-height: 16px;
+	text-transform: uppercase;
+	width: 100%;
+}
+
+#report_content .evolution{
+	width: calc(100% - 40px);
+	max-width: 400px;
+	margin-top: 20px;
+	position: relative;
+	left: 40px;
+}
+
+#report_content .ano{
+	height: 18px;
+	background: #f0f5f5;
+	margin-bottom: 1px;
+	position: relative;
+}
+
+#report_content .ano_lb{
+	position: absolute;
+	width: 40px;
+	top: 0;
+	left: -40px;
+	font-size: 13px;
+	line-height: 18px;
+	z-index: 2;
+	text-align: right;
+	padding-right: 10px;
+	color: #ddd;
+}
+
+#report_content .selected .ano_lb{
+	color: #33cccc;
+}
+
+#report_content .label{
+	position: absolute;
+	top: 0;
+	left: 0;
+	width: 100%;
+	height: 100%;
+	font-size: 11px;
+	line-height: 18px;
+	padding-left: 5px;
+	z-index: 2;
+}
+
+#report_content .bar{
+	position: absolute;
+	top: 0;
+	left: 0;
+	height: 100%;
+	background: #dce5e5;
+	width: 54%;
+	z-index: 1;
+}
+
+#report_content .selected .bar{
+	background: #33cccc;
+}
+
+#report_content .ranking{
+	width: 100%;
+	height: 200px;
+	background: #f0f5f5;
+	margin-top: 20px;
+}
+
+.report_hr{
+	width: 100%;
+	height: 0;
+	line-height: 0;
+	margin: 40px 0 20px 0;
+	font-size: 24px;
+	color: #bcdc84;
+	font-weight: 900;
+}
+
 
 
 /*

@@ -131,6 +131,10 @@ var language = {
 		_pt:'GERAR RELATÓRIO',
 		_en:'GENERATE REPORT'
 	},
+	close_report:{
+		_pt:'FECHAR RELATÓRIO',
+		_en:'CLOSE REPORT'
+	},
 	all_indicators:{
 		_pt:'TODOS OS INDICADORES',
 		_en:'ALL INDICATORS'
