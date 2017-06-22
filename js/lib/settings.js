@@ -21,7 +21,6 @@ requirejs.config({
       'jquery-easing'         :{ deps:['jquery']},
       'jquery-scrollTo'       :{ deps:['jquery']},
       'jquery-ui'             :{ deps:['jquery']},
-      'd3'                    :{ deps:['jquery']},
       'defiant'               :{ deps:['jquery']},
       'leaflet'               :{ deps:['jquery']},
       'leaflet.googlemutant'  :{ deps:['jquery','leaflet']},

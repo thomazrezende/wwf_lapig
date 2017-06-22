@@ -19,6 +19,8 @@ set('report_ul')
 
 var map_itens = []
 var report_itens = []
+var report = {}
+report.locked = true // destrava ao final de update_indicators_data
 
 $(dbody).addClass('data_mode')
 
@@ -184,7 +186,7 @@ $(msg_layers).html(language['no_indicators'][lang])
 var msg_indicators = elem('li', {cls:'no_indicators_msg', trg:indicators})
 $(msg_indicators).html(language['no_indicators'][lang])
 
-var msg_report = elem('li', {cls:'no_indicators_msg', trg:report_ul})
+var msg_report = elem('div', {cls:'no_indicators_msg', trg:report_content})
 $(msg_report).html(language['no_indicators'][lang])
 
 var sort_layers_msg = elem('div', {id:'sort_layers_msg', trg:layers})
@@ -302,13 +304,6 @@ function create_layer( d ){
 
 	// map
 	var ms_filter = '"[ANO]"="' + d.ano + '"'
-	// if(d.regionType == 'estado' ) ms_filter +='AND "[UF]"="'+d.region+'"'
-	// if(d.regionType == 'bioma' ) ms_filter +='AND "[BIOMA]"="'+d.region+'"'
-	// if(d.regionType == 'municipio' ) ms_filter +='AND "[COD_MUNICI]"="'+d.region+'"'
-	// if(d.regionType == 'bacia' ) ms_filter +='AND "[BIOMA]"="'+d.region+'"'
-
-	console.log('ms_filter');
-	console.log(ms_filter);
 
 	var wms_layer = L.tileLayer.wms("http://maps.lapig.iesa.ufg.br/ows?", {
 		layers: d.id,
@@ -369,46 +364,22 @@ function search_indicator(d){
 	return ind
 }
 
-/*
-function create_mirror(d){
-	var mirror = elem('li', {trg: report_ul, cls:'indicator mirror'})
-	d.mirror = mirror
-
-	var icon_x = elem('div', { trg:mirror, cls:'icon uncheck animate1 icon25' })
-	$(icon_x).append(icons.cXfull)
-	$(icon_x).on('click', function(){
-		console.log(this.indicator);
-		toggle_check_indicator(this.indicator)
-	})
-	icon_x.indicator = search_indicator(d)
-
-	var title = elem('label', {trg:mirror, cls:'animate1 title'})
-	$(title).html(d.nome + ' | ' + d.area_label + ' | ' )
-
-	var year = elem( 'span', { trg:title })
-	$(year).html(d.ano)
-
-	var data = elem('label', {trg:mirror, cls:'animate1 data'})
-	$(data).html(format_number(d.valor) + ' ' + d.unidade)
-
-}
-
-function remove_mirror(d){
-	// report list
-	$(d.mirror).remove()
-	d.mirror = null
-}
-*/
 
 set('clear_report')
-
 $(clear_report).on('click', function(){
 	$(report_ul).html(null)
 	$(DATA.list).each(function(i,d){
 		if(d.selected) toggle_check_indicator(d)
 	})
+	report.csv = []
+	close_report()
 })
 
+set('download_report')
+$(download_report).on('click', function(){
+	console.log(report.csv);
+	json2csv(report.csv, 'risco_sócio_ambiental_' + report.region , 'Risco Sócio Ambiental | ' + report.regionType + ' - ' + report.region, true)
+})
 
 // INDICATORS
 
@@ -421,8 +392,6 @@ DATA.categs = ['all', 'selected']
 DATA.create_indicators_list = function(){
 
 	var filters
-	// indicators_list.innerHTML = ''
-	// category_filter_ul.innerHTML = ''
 
 	$(DATA.json).each(function(i,d){
 		create_indicator(d)
@@ -447,7 +416,7 @@ DATA.create_indicators_list = function(){
 
 
 DATA.update_indicators_data = function(regionType, region){
-	console.log("update_indicators_data!!");
+	console.log("update_indicators_data");
 
 	$(DATA.list).each(function(i,d){ // LISTA DE INDICADORES NO PAINEL
 		$(DATA.json).each(function(_i,_d){
@@ -457,14 +426,9 @@ DATA.update_indicators_data = function(regionType, region){
 				indicator_data(d, _d.ano, _d.valor)
 			}
 		})
-
-		//dado
-		// caso o issue SINCRONIA não seja possível de resolver, capturar novos dados assim:
-		// 1. procurar ano atual no d.ano[]
-		// 2. se achar, pegar o val_id
-		// 3.1 true: buscar o valor com novo val_id
-		// 3.2 false: retornar "valor não encontrado"
 	})
+
+	report.locked = false
 
 }
 
@@ -525,12 +489,14 @@ function indicator_data(indicator, anos, valores){
 	indicator.val_id = 0
 
 	// ano
+	$(indicator.year).html(null)
 	if( indicator.ano.length > 1 ){
 		$(indicator.year)
 		.addClass('plus')
-		.html(indicator.ano[0] + ' (+)')
+		.html(' | ' + indicator.ano[0] + ' (+)')
 	}else{
-		$(indicator.year).html(indicator.ano[0])
+		$(indicator.year).removeClass('plus')
+		if(indicator.ano[0]) $(indicator.year).html(' | ' + indicator.ano[0])
 	}
 
 	// select
@@ -544,7 +510,8 @@ function indicator_data(indicator, anos, valores){
 	})
 
 	// valor
-	$(indicator.data).html(format_number(indicator.valor[0]) + ' ' + indicator.unidade)
+	if(indicator.valor[0])	$(indicator.data).removeClass('no_data').html(format_number(indicator.valor[0]) + ' ' + indicator.unidade)
+	else $(indicator.data).addClass('no_data').html(language['no_data'][lang])
 }
 
 function create_indicator(d){
@@ -577,11 +544,7 @@ function create_indicator(d){
 	hit.indicator = indicator
 
 	var title = elem('label', {trg:indicator, cls:'animate1 title'})
-
 	var title_name = elem('span', {trg:title, html:d.nome})
-	// var title_div = elem('span', {trg:title, html:' | '})
-	// indicator.area_label = elem('span', {trg:title, html:'BRASIL'})
-	title_div = elem('span', {trg:title, html:' | '})
 
 	var year = elem( 'span', { trg:title })
 	indicator.year = year
@@ -606,7 +569,7 @@ function create_indicator(d){
 		var val = $(this).val()
 		this.indicator.val_id = val
 		$(this.indicator.data).html( format_number(this.indicator.valor[val]) + ' ' + indicator.unidade )
-		$(this.indicator.year).html( indicator.ano[val] + ' (+)' )
+		$(this.indicator.year).html( ' | ' + indicator.ano[val] + ' (+)' )
 	})
 	data_select.indicator = indicator
 	indicator.data_select = data_select
@@ -693,13 +656,13 @@ function update_report(d){
 			//regionType: d.regionType,
 			id: d.id,
 			// area_label:d.area_label,
-			anos:d.ano,
-			ano:d.ano[d.val_id],
-			valores:d.valor,
-			valor:d.valor[d.val_id],
-			unidade:d.unidade,
+			nome:d.nome,
 			descricao:d.descricao,
-			nome:d.nome
+			anos:d.ano,
+			valores:d.valor,
+			ano:d.ano[d.val_id],
+			valor:d.valor[d.val_id],
+			unidade:d.unidade
 		}
 		create_layer(report_ind)
 		report.list.push(report_ind)
@@ -738,7 +701,21 @@ function remove_report(d){
 
 }
 
+
 function create_report(d){
+
+	var csv_data = {
+		indicador: d.nome,
+		descricao: d.descricao,
+		unidade: d.unidade,
+		anos:d.ano,
+		valores:d.valor
+
+		// ranking...
+
+	}
+
+	report.csv.push(csv_data)
 
 	var indicator = elem('li', {trg:report_ul, cls:'indicator'})
 	indicator.obj = d
@@ -748,8 +725,14 @@ function create_report(d){
 	var hr = elem('div', {trg:indicator, cls:'report_hr', html:'&mdash;'})
 	var header = elem('div', {trg:indicator, cls:'header'})
 
-	var title = elem('div', {trg:header, cls:'title', html:d.nome + ' | ' + d.ano[d.val_id]})
-	var data = elem('div', {trg:header, cls:'data', html:format_number(d.valor[d.val_id]) + ' ' + d.unidade})
+	var title = elem('div', {trg:header, cls:'title'})
+	if(d.ano[d.val_id]) $(title).html(d.nome + ' | ' + d.ano[d.val_id])
+	else  $(title).html(d.nome)
+
+	var data = elem('div', {trg:header, cls:'data'})
+	if(d.valor[d.val_id]) $(data).html( format_number(d.valor[d.val_id]) + ' ' + d.unidade )
+	else $(data).addClass('no_data').html( language['no_data'][lang] )
+
 	var text = elem('div', {trg:indicator, cls:'text', html:d.descricao})
 
 	if(d.ano.length > 1){
@@ -839,18 +822,30 @@ function close_report(){
 	$(report_bt_label).text( language['generate_report'][lang])
 }
 
+report.csv = []
+
 function generate_report(){
 
-	$(report_ul).html(null)
-	$(DATA.list).each(function(i,d){
-		if(d.selected){
-			create_report(d)
-		}
-	})
+	if(!report.locked){
+		// altera dados no header do relatorio
+		if(report.regionType != 'brasil') $(report_category).html(report.regionType)
+		else $(report_category).html('')
+		$(report_area).html( report.region)
 
-	report_container.open = true
-	$(report_container).addClass('open')
-	$(report_bt_label).text( language['close_report'][lang])
+		// prepara objeto para csv
+		report.csv = []
+
+		$(report_ul).html(null)
+		$(DATA.list).each(function(i,d){
+			if(d.selected){
+				create_report(d)
+			}
+		})
+
+		report_container.open = true
+		$(report_container).addClass('open')
+		$(report_bt_label).text( language['close_report'][lang])
+	}
 }
 
 // sessionStorage.clear()
@@ -1001,7 +996,8 @@ AREA.load_floating_lists = function(){
 	}
 
 	// indicators list
-	var url = 'data/lista.json'
+	var url = 'http://maps.lapig.iesa.ufg.br/indicadores/lista'
+	// var url = 'data/lista.json'
 	ajax( url, DATA, 'create_indicators_list', [] )
 
 	//default area
@@ -1240,7 +1236,8 @@ function call_area_list(list){
 // etapa 4
 function set_area_filter(itm){
 	console.log('set_area_filter: ' + itm.lb);
-	console.log(itm);
+
+	report.locked = true
 
 	var id = itm.ID
 	AREA.id = id;
@@ -1254,10 +1251,14 @@ function set_area_filter(itm){
 
 	// 1 carrega dados novos nos indicadores (list + report)
 
-	var url = 'data/lista'
-	if(itm.regionType != 'brasil' ) url += '_' + itm.regionType
-	if(itm.region != 'brasil' ) url += '_' + itm.region
-	url += '.json'
+	// var url = 'data/lista'
+	// if(itm.regionType != 'brasil' ) url += '_' + itm.regionType
+	// if(itm.region != 'brasil' ) url += '_' + itm.region
+	// url += '.json'
+
+	var url = 'http://maps.lapig.iesa.ufg.br/indicadores/lista'
+	if(itm.regionType != 'brasil' ) url += '?regionType=' + itm.regionType
+	if(itm.region != 'brasil' ) url += '&region=' + itm.region
 
 	ajax( url, DATA, 'update_indicators_data', [itm.regionType, itm.region] )
 
@@ -1266,12 +1267,21 @@ function set_area_filter(itm){
 
 
 
-	// 3 muda dados no report header
+	// 3 guarda dados da seleçaão para report.csv
 
-	if(itm.regionType != 'brasil') $(report_category).html(itm.regionType)
-	else $(report_category).html('')
-	$(report_area).html( itm.lb.toLowerCase())
+	report.regionType = itm.regionType
+	report.region = toTitleCase(itm.lb)
+	if(report.region.indexOf('-') > 0) {
+		var uf_nome = report.region.split(' - ')
+		report.region = toTitleCase(uf_nome[1]) + ' - ' + uf_nome[0].toUpperCase()
+	}
+	//capitular
+	report.region.replace(/\b[a-z]/g,function(f){return f.toUpperCase()});
 
+}
+
+function toTitleCase(str){
+  return str.replace(/\w\S*/g, function(txt){return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase();});
 }
 
 function convert_lang(lb){
@@ -1284,7 +1294,8 @@ function convert_lang(lb){
 //start
 
 // etapa 0
-ajax( 'data/regions.json', AREA, 'load_floating_lists', [] )
+var regions_url = 'http://maps.lapig.iesa.ufg.br/indicadores/regions'
+ajax( regions_url, AREA, 'load_floating_lists', [] )
 initMap()
 
 // MAP REPORT

@@ -115,9 +115,17 @@ var language = {
 		_pt:'MAPA',
 		_en:'MAP'
 	},
+	no_data:{
+		_pt:'sem dados',
+		_en:'no data'
+	},
 	report:{
 		_pt:'RELATÓRIO',
 		_en:'REPORT'
+	},
+	download_report:{
+		_pt:'BAIXAR RELATÓRIO (csv)',
+		_en:'DOWNLOAD REPORT (csv)'
 	},
 	about:{
 		_pt:'SOBRE',

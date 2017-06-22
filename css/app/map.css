@@ -197,6 +197,10 @@
 	pointer-events: none;
 }
 
+#indicators_list .indicator .data.no_data{
+	color: #db6559;
+}
+
 #indicators_list .indicator .icon{
 	position: absolute;
 	top: 0;
@@ -666,7 +670,7 @@
 #report_content{
 	position: absolute;
 	top: 80px;
-	height: calc(100% - 80px);
+	height: calc(100% - 160px);
 	width: 100%;
 	overflow-y: auto;
 	overflow-x: hidden;
@@ -687,7 +691,6 @@
 	font-size: 30px;
 	font-weight: 300;
 	color: #33cccc;
-	text-transform: capitalize;
 }
 
 #report_content .header{
@@ -701,6 +704,10 @@
 	font-size: 21px;
 	font-weight: 400;
 	color: #33cccc;
+}
+
+#report_content .data.no_data{
+	color: #db6559;
 }
 
 #report_content .text{
@@ -794,42 +801,36 @@
 }
 
 
-
-/*
-#clear_report_bt{
+#download_report{
 	width: 100%;
 	height: 80px;
-	background: #f0f5f5;
+	background: #33cccc;
 	position: absolute;
 	bottom: 0;
 	left: 0;
 	cursor: pointer;
 	line-height: 76px;
 	text-align: center;
-	color: #db6559;
+	color: #fff;
 	font-size: 14px;
 	cursor: pointer;
 	border: #fff 3px solid;
 	z-index: 1
 }
 
-#clear_report_bt:hover{
+#download_report:hover{
 	color: #fff;
-	background: #db6559;
+	background: #bcdc84;
 }
 
-#clear_report_icon{
+#download_report_icon{
 	width: 74px;
 	height: 74px;
 	position: absolute;
-	left: 0;
+	right: 0;
 	top: 0;
-	fill:#db6559
+	fill:#fff;
 }
-
-#clear_report_bt:hover #clear_report_icon{
-	fill: #fff;
-}*/
 
 
 #clear_report{
@@ -1418,6 +1419,8 @@
 	border: #fff 1px solid;
 	font-size: 11px;
 	color: #fff;
+	/*hide*/
+	display: none
 }
 
 .layer .download{
@@ -1432,13 +1435,16 @@
 	border: #fff 1px solid;
 	font-size: 11px;
 	color: #fff;
+	/*hide*/
+	display: none
 }
 
 .layer .op_slider{
 	position: absolute;
 	bottom: 1px;
 	left: 0;
-	width: calc(50% - 40px);
+	/*width: calc(50% - 40px);*/
+	width: calc(100% - 40px);
 	height: 30px;
 }
 
