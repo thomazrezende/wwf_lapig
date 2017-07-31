@@ -295,7 +295,7 @@ b,.semibold{ font-weight:600}
 /* LOGOS TOP */
 
 #logos_top{
-	width: 100px;
+	width: 140px;
 	height: 50px;
 	z-index: 4;
 	position: absolute;
@@ -304,13 +304,13 @@ b,.semibold{ font-weight:600}
 }
 
 .logo_top{
-	width: 45px;
 	height: 50px;
 	position: absolute;
 	cursor: pointer;
 }
 
 #logos_top #logo_wwf{
+	width: 45px;
 	right: 0;
 	background-image: url('../../layout/logo_wwf.png');
 	background-size: contain;
@@ -319,6 +319,7 @@ b,.semibold{ font-weight:600}
 }
 
 #logos_top #logo_lapig{
+	width: 95px;
 	left: 0;
 	background-image: url('../../layout/logo_lapig.png');
 	background-size: contain;

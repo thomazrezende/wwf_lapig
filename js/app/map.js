@@ -22,7 +22,7 @@ var report_itens = []
 var report = {}
 report.locked = true // destrava ao final de update_indicators_data
 
-$(dbody).addClass('data_mode')
+$(dbody).addClass('data_mode preloader_mode')
 
 data_container.open = true
 $(data_bt).on('click', function(){
@@ -90,6 +90,20 @@ $(areas_bt).on('click',function(){
 indicators_bt.list = category_filter
 areas_bt.list = area_filters
 
+// PRELOADER
+var preloader = get('preloader')
+
+function set_preloader(){
+	$(preloader).show()
+	$(dbody).addClass('preloader_mode')
+}
+
+function remove_preloader(){
+	$(dbody).removeClass('preloader_mode')
+	setTimeout(function(){
+		$(preloader).hide()
+	}, animate2)
+}
 
 // LAYERS
 
@@ -205,7 +219,9 @@ function create_layer( d ){
 
   layers_list.prepend(layer);
 
-	var label1 = elem('div', { trg:layer })
+	var layer_top = elem('div',{trg:layer, cls:'layer_top animate1'})
+
+	var label1 = elem('div', { trg:layer_top })
 	$(label1)
 	.addClass('lb1')
 	.addClass('animate1')
@@ -213,14 +229,14 @@ function create_layer( d ){
 	// .html( d.area_label + ' | ' + d.ano )
 	layer.label1 = label1
 
-	var label2 = elem('div', { trg:layer })
+	var label2 = elem('div', { trg:layer_top })
 	$(label2)
 	.addClass('lb2')
 	.addClass('animate1')
 	.html( d.nome )
 	layer.label2 = label2
 
-	var eye = elem('div', { trg:layer })
+	var eye = elem('div', { trg:layer_top })
 	$(eye)
 	.addClass('eye')
 	.addClass('animate1')
@@ -243,14 +259,14 @@ function create_layer( d ){
 	eye.layer = layer
 	eye.obj = d
 
-	var arrow = elem('div', { trg:layer })
+	var arrow = elem('div', { trg:layer_top })
 	$(arrow)
 	.addClass('arrow')
 	.addClass('animate1')
 	.addClass('icon15')
 	.append( icons.down )
 
-	var handle = elem('div', { trg:layer })
+	var handle = elem('div', { trg:layer_top })
 	$(handle)
 	.addClass('handle')
 	.addClass('icon15')
@@ -289,9 +305,10 @@ function create_layer( d ){
 
 	var download = elem('div', {trg:content, cls:'download', html: language.download[lang]})
 	$(download).on('click', function(){
-		 console.log('!!download ' + this.ID);
+			window.open('http://maps.lapig.iesa.ufg.br/ows?REQUEST=GetFeature&SERVICE=wfs&VERSION=1.0.0&TYPENAME=' + this.ID + "_" + this.ano + '&OUTPUTFORMAT=shape-zip')
 	})
 	download.ID = d.id
+	download.ano = d.ano
 
 	var hit = elem('div', { trg:layer })
 	$(hit)
@@ -329,6 +346,14 @@ function create_layer( d ){
 	//slider > op_handle
 	op_handle.wms_layer = wms_layer
 
+	//utf grid
+	// utfgrid = new L.utfGridWMS("http://maps.lapig.iesa.ufg.br/ows?", {
+	// 	layers: d.id,
+	// 	MSFILTER: ms_filter
+	// });
+	//
+	// utfgrid.addTo(map);
+
 }
 
 function remove_layer(d){
@@ -364,6 +389,21 @@ function search_indicator(d){
 	return ind
 }
 
+//UTFGRID
+var utfgrid = new L.utfGridWMS();
+
+utfgrid.on("mouseover", function(e){
+		console.log('Município: ' + e.data.MUNICIPIO + " - " + e.data.UF + " || Valor: " + e.data.VALOR)
+});
+
+utfgrid.on("click", function(e){
+		if (e.data) {
+			console.log('Município: ' + e.data.MUNICIPIO + " - " + e.data.UF + " || Valor: " + e.data.VALOR);
+		} else {
+			console.log('Sem dados');
+		}
+});
+
 
 set('clear_report')
 $(clear_report).on('click', function(){
@@ -377,8 +417,7 @@ $(clear_report).on('click', function(){
 
 set('download_report')
 $(download_report).on('click', function(){
-	console.log(report.csv);
-	json2csv(report.csv, 'risco_sócio_ambiental_' + report.region , 'Risco Sócio Ambiental | ' + report.regionType + ' - ' + report.region, true)
+	json2csv(report.csv, 'risco_socioambiental_' + report.region , 'Risco Socioambiental | ' + report.regionType + ' - ' + report.region + ' (http://riscosocioambiental.org/)', false)
 })
 
 // INDICATORS
@@ -429,6 +468,7 @@ DATA.update_indicators_data = function(regionType, region){
 	})
 
 	report.locked = false
+	remove_preloader()
 
 }
 
@@ -525,6 +565,7 @@ function create_indicator(d){
 	indicator.descricao = d.descricao
 	indicator.categ = normalize_categs(d.categ)
 	indicator.unidade = d.unidade
+	indicator.ranking = d.ranking
 
 	indicator.tipo = d.tipo
 
@@ -662,13 +703,12 @@ function update_report(d){
 			valores:d.valor,
 			ano:d.ano[d.val_id],
 			valor:d.valor[d.val_id],
-			unidade:d.unidade
+			unidade:d.unidade,
+			ranking:d.ranking
 		}
 		create_layer(report_ind)
 		report.list.push(report_ind)
 	}else{
-		console.log('remove');
-
 		$(report.list).each(function(_i,_d){
 			if( _d.id == d.id){
 				remove_layer(_d)
@@ -704,18 +744,21 @@ function remove_report(d){
 
 function create_report(d){
 
-	var csv_data = {
-		indicador: d.nome,
-		descricao: d.descricao,
-		unidade: d.unidade,
-		anos:d.ano,
-		valores:d.valor
+	var csv_title = {	titulo: d.nome + ' (' + d.unidade + ')'	}
+	var csv_description = {	descricao: d.descricao	}
 
-		// ranking...
+	report.csv.push(csv_title)
+	report.csv.push(csv_description)
 
-	}
+	$(d.ano).each(function(_i,_d){
+		var csv_data = {
+			ano: _d,
+			val:d.valor[_i]
+		}
+		report.csv.push(csv_data)
+	})
 
-	report.csv.push(csv_data)
+	report.csv.push({div:' '})
 
 	var indicator = elem('li', {trg:report_ul, cls:'indicator'})
 	indicator.obj = d
@@ -735,9 +778,12 @@ function create_report(d){
 
 	var text = elem('div', {trg:indicator, cls:'text', html:d.descricao})
 
+	// evolução
+
 	if(d.ano.length > 1){
 
-		var evolution = elem('div', {trg:indicator, cls:'evolution'})
+		var ranking_title = elem( 'div', {trg:indicator, cls:'subtitle', html: language['evolution'][lang]})
+		var evolution = elem('div', {trg:indicator, cls:'chart'})
 
 		evolution.max = 0
 		evolution.itens = []
@@ -746,8 +792,8 @@ function create_report(d){
 
 			if(evolution.max < d.valor[_i]) evolution.max = d.valor[_i]
 
-			var ano = elem('div', {trg:evolution, cls:'ano' })
-			var ano_lb = elem('div', {trg:ano, cls:'ano_lb', html:_d })
+			var ano = elem('div', {trg:evolution, cls:'item' })
+			var ano_lb = elem('div', {trg:ano, cls:'item_lb', html:_d })
 			var bar = elem('div', {trg:ano, cls:'bar'})
 		  var label = elem( 'div', {trg: ano, cls:'label', html:  format_number(d.valor[_i]) + ' ' + d.unidade })
 
@@ -768,11 +814,38 @@ function create_report(d){
 
 	}
 
-	var ranking = elem('div', {trg:indicator, cls:'ranking', html:'ranking de municípios'})
-	//ranking chart
+
+	// ranking
+
+	var ranking_title = elem( 'div', {trg:indicator, cls:'subtitle', html: language['city_ranking'][lang] + ' (' + d.ano[d.val_id] + ')'})
+	var ranking = elem('div', {trg:indicator, cls:'chart'})
+	ranking.itens = []
+
+	$(d.ranking.maior).each(function(_i,_d){
+
+		var municipio = elem('div', {trg:ranking, cls:'item' })
+		var rank_lb = elem('div', {trg:municipio, cls:'item_lb', html: _d.RANKING + '&deg;' })
+		var label = elem( 'div', {trg: municipio, cls:'label', html: _d.MUNICIPIO + ' (' + _d.UF + '): ' + format_number(_d.VALOR) + ' ' + d.unidade })
+
+		ranking.itens.push(municipio)
+
+	})
+
+	var meio = elem('div', {trg:ranking, cls:'item' })
+	var meio_lb = elem('div', {trg:meio, cls:'item_lb', html: '...' })
+
+	$(d.ranking.menor).each(function(_i,_d){
+
+		var municipio = elem('div', {trg:ranking, cls:'item' })
+		var rank_lb = elem('div', {trg:municipio, cls:'item_lb', html: _d.RANKING + '&deg;' })
+		var label = elem( 'div', {trg: municipio, cls:'label', html: _d.MUNICIPIO + ' (' + _d.UF + '): ' + format_number(_d.VALOR) + ' ' + d.unidade })
+
+		ranking.itens.push(municipio)
+
+	})
+
 
 	report_ul.append(indicator)
-
 
 }
 
@@ -827,6 +900,9 @@ report.csv = []
 function generate_report(){
 
 	if(!report.locked){
+
+		set_preloader()
+
 		// altera dados no header do relatorio
 		if(report.regionType != 'brasil') $(report_category).html(report.regionType)
 		else $(report_category).html('')
@@ -836,6 +912,26 @@ function generate_report(){
 		report.csv = []
 
 		$(report_ul).html(null)
+
+		/*
+		erro aqui! Os rankings em cada indicador não podem vir
+		da lista de indicadores total, pois eles
+		precisam ser consultados para um ano específico.
+
+		ideal é uma nova solicitação que retorne o $(DATA.list).each abaixo.
+		O REQUEST	deve considerar:
+		1. área selecionada (RegionType + region)
+		2. indicadores SELECIONADOS [array de ids?]
+		3. ano escolhido em cada indicador [array de anos sincronizados?]
+
+		isso vai retornar um array com os rankings nos valores certos para
+		cada indicador:
+		id_indicador: {
+			maiores: [...],
+			menores: [...]
+		}
+		*/
+
 		$(DATA.list).each(function(i,d){
 			if(d.selected){
 				create_report(d)
@@ -845,6 +941,9 @@ function generate_report(){
 		report_container.open = true
 		$(report_container).addClass('open')
 		$(report_bt_label).text( language['close_report'][lang])
+
+		// vai para dentro do ajax com os rankings
+		remove_preloader()
 	}
 }
 
@@ -876,7 +975,6 @@ function count_report(){
 	$(layers_counter).html( report.list.length )
 	$(report_bt_counter).html( report.list.length )
 }
-
 
 //FILTERS
 //categs
@@ -1169,7 +1267,7 @@ function create_area_list(bt_origin, lb, itens){
 					obj.li = li
 					obj.uf = i
 					obj.nome = _d.nome
-					obj.codigo = _d.cod_mu
+					obj.cod_mu = _d.cod_mu
 					obj.index = removeSpaces(removeAccents(_d.nome.toLowerCase()),'-')
 					AREA.municipios.list.push(obj)
 				})
@@ -1234,8 +1332,11 @@ function call_area_list(list){
 }
 
 // etapa 4
+var wms_limits
+
 function set_area_filter(itm){
-	console.log('set_area_filter: ' + itm.lb);
+	console.log('set_area_filter: ' + itm.lb + ' - ' + itm.region);
+	set_preloader()
 
 	report.locked = true
 
@@ -1264,7 +1365,21 @@ function set_area_filter(itm){
 
 
 	// 2 carrega mascara no mapa
+	if(wms_limits) map.removeLayer(wms_limits)
 
+	wms_limits = L.tileLayer.wms("http://maps.lapig.iesa.ufg.br/ows?", {
+		layers: 'limits',
+		format: 'image/png',
+		transparent: true,
+		width:512,
+		height:512,
+		srs:'EPSG:900913',
+		MSFILTER:'"[name]"="'+itm.region+'"',
+		updateWhenIdle:true
+	});
+
+	map.addLayer(wms_limits)
+	wms_limits.setZIndex(1000)
 
 
 	// 3 guarda dados da seleçaão para report.csv

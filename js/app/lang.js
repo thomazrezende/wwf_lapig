@@ -175,6 +175,14 @@ var language = {
 		_pt:'Buscar município',
 		_en:'Search city'
 	},
+	city_ranking:{
+		_pt:'RANKING DE MUNICÍPIOS',
+		_en:'CITY RANKING'
+	},
+	evolution:{
+		_pt:'EVOLUÇÃO',
+		_en:'EVOLUTION'
+	},
 	indicators:{
 		_pt:'INDICADORES',
 		_en:'INDICATORS'

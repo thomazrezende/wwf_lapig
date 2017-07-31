@@ -24,6 +24,8 @@ requirejs.config({
       'defiant'               :{ deps:['jquery']},
       'leaflet'               :{ deps:['jquery']},
       'leaflet.googlemutant'  :{ deps:['jquery','leaflet']},
+      'L.UTFGridWMS'          :{ deps:['jquery','leaflet']},
+      'corslite'              :{ deps:['jquery','leaflet']},
       //app
       'app/icons'             :{ deps:['jquery','leaflet','defiant']},
       'app/main'              :{ deps:['jquery','leaflet','defiant','app/icons']},
@@ -44,6 +46,8 @@ require([
   'defiant', // defiantjs.com
   'leaflet',
   'leaflet.googlemutant',
+  'L.UTFGridWMS',
+  'corslite',
   //app
   'app/icons',
   'app/main',
