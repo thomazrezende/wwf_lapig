@@ -87,6 +87,19 @@ function corslite(url, callback, cors) {
     x.send(null);
     sent = true;
 
+    $.ajax({
+        url: url, 
+        type: "GET",
+        crossDomain: true,
+        dataType: 'json', 
+        success: function(result){
+            console.log(result)
+        },
+        error:function(xhr, status){
+             console.log("error")
+        }
+   });
+
     return x;
 }
 

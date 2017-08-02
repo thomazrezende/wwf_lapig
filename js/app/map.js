@@ -14,13 +14,20 @@ set('category_filter')
 set('area_filters')
 
 set('report_bt')
+set('map')
 set('map_report')
 set('report_ul')
+set('tooltip')
+set('tooltip_city')
+set('tooltip_val')
+
+$(tooltip).hide()
 
 var map_itens = []
 var report_itens = []
 var report = {}
 report.locked = true // destrava ao final de update_indicators_data
+var utfgrid
 
 $(dbody).addClass('data_mode preloader_mode')
 
@@ -29,6 +36,13 @@ $(data_bt).on('click', function(){
 	if(data_container.open) close_data()
 	else open_data()
 	resize_map(animate2)
+})
+
+
+$(map).mouseleave(function(){
+	setTimeout(function(){
+		$(tooltip).hide()
+	},100)
 })
 
 function close_data(){
@@ -104,6 +118,22 @@ function remove_preloader(){
 		$(preloader).hide()
 	}, animate2)
 }
+
+///////////////// tooltip
+
+var mouse_x, mouse_y
+
+$(window).on('mousemove',function (e) {
+	e = e || window.event
+  e = $.event.fix(e)
+	mouse_x = e.pageX
+	mouse_y = e.pageY
+
+	if( mouse_x > win_w/2 ) $(tooltip).removeClass().addClass('right').css({ left: mouse_x - 320 , top: mouse_y - 20 })
+	else $(tooltip).removeClass().addClass('left').css({ left: mouse_x + 20, top: mouse_y - 20 })
+})
+
+
 
 // LAYERS
 
@@ -346,14 +376,29 @@ function create_layer( d ){
 	//slider > op_handle
 	op_handle.wms_layer = wms_layer
 
-	//utf grid
-	// utfgrid = new L.utfGridWMS("http://maps.lapig.iesa.ufg.br/ows?", {
-	// 	layers: d.id,
-	// 	MSFILTER: ms_filter
-	// });
-	//
-	// utfgrid.addTo(map);
+	// utf grid
+	utfgrid = new L.utfGridWMS("http://maps.lapig.iesa.ufg.br/ows?", {
+		layers: d.id,
+		MSFILTER: ms_filter
+	});
 
+	utfgrid.on("mouseover", function(e){
+		$(tooltip).show()
+		$(tooltip_city).html( e.data.MUNICIPIO + " - " + e.data.UF)
+		$(tooltip_val).html( format_number(e.data.VALOR))
+	}).on("mouseout", function(e){
+		$(tooltip).hide()
+	})
+
+	utfgrid.on("click", function(e){
+		if(e.data){
+			$(AREA.municipios.list).each(function(i,d){
+				if(d.cod_mu == 3511003) set_area_filter(d.li)
+			})
+		}
+	});
+
+	utfgrid.addTo(map);
 }
 
 function remove_layer(d){
@@ -389,20 +434,7 @@ function search_indicator(d){
 	return ind
 }
 
-//UTFGRID
-var utfgrid = new L.utfGridWMS();
 
-utfgrid.on("mouseover", function(e){
-		console.log('Município: ' + e.data.MUNICIPIO + " - " + e.data.UF + " || Valor: " + e.data.VALOR)
-});
-
-utfgrid.on("click", function(e){
-		if (e.data) {
-			console.log('Município: ' + e.data.MUNICIPIO + " - " + e.data.UF + " || Valor: " + e.data.VALOR);
-		} else {
-			console.log('Sem dados');
-		}
-});
 
 
 set('clear_report')
@@ -1335,6 +1367,7 @@ function call_area_list(list){
 var wms_limits
 
 function set_area_filter(itm){
+
 	console.log('set_area_filter: ' + itm.lb + ' - ' + itm.region);
 	set_preloader()
 
@@ -1352,10 +1385,6 @@ function set_area_filter(itm){
 
 	// 1 carrega dados novos nos indicadores (list + report)
 
-	// var url = 'data/lista'
-	// if(itm.regionType != 'brasil' ) url += '_' + itm.regionType
-	// if(itm.region != 'brasil' ) url += '_' + itm.region
-	// url += '.json'
 
 	var url = 'http://maps.lapig.iesa.ufg.br/indicadores/lista'
 	if(itm.regionType != 'brasil' ) url += '?regionType=' + itm.regionType

@@ -130,6 +130,9 @@ b,.semibold{ font-weight:600}
 	height: calc(100% - 80px);
 }
 
+#tooltip.left{text-align: left;}
+#tooltip.right{text-align: right;}
+
 .bt{
 	width: 81px;
 	height: 81px;

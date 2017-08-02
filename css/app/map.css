@@ -72,6 +72,31 @@
 	transform: rotate(0);
 }
 
+#tooltip{
+	width: 300px;
+	position: fixed;
+	z-index: 200;
+	pointer-events: none;
+}
+
+#tooltip_lb{
+	display: inline-block;
+	background: #33cccc;
+	padding: 10px;
+	color: #fff;
+	font-size: 10px;
+	font-family: Arial, sans-serif;
+	pointer-events: none;
+	text-transform: uppercase;
+	line-height: 18px;
+	border-radius: 3px;
+}
+
+#tooltip_val{
+	font-size: 16px;
+	font-weight: bold
+}
+
 
 /* indicators */
 
@@ -1514,6 +1539,9 @@
 	top: 0;
 	right: 35px;
 }
+
+
+
 
 
 /* PRELOADER */

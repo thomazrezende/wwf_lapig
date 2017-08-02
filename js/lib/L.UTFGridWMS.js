@@ -18,7 +18,7 @@ L.UTFGridWMS = L.TileLayer.extend({
         mouseInterval: 66,
         crs: null,
         uppercase: false
-	}, 
+	},
 
 	_mouseOn: null,
     _mouseOnTile: null,
