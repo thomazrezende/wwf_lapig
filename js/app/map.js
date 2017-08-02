@@ -597,7 +597,6 @@ function create_indicator(d){
 	indicator.descricao = d.descricao
 	indicator.categ = normalize_categs(d.categ)
 	indicator.unidade = d.unidade
-	indicator.ranking = d.ranking
 
 	indicator.tipo = d.tipo
 
@@ -776,6 +775,8 @@ function remove_report(d){
 
 function create_report(d){
 
+	console.log(d);
+
 	var csv_title = {	titulo: d.nome + ' (' + d.unidade + ')'	}
 	var csv_description = {	descricao: d.descricao	}
 
@@ -824,7 +825,7 @@ function create_report(d){
 
 			if(evolution.max < d.valor[_i]) evolution.max = d.valor[_i]
 
-			var ano = elem('div', {trg:evolution, cls:'item' })
+			var ano = elem('div', {trg:evolution, cls:'item_bar' })
 			var ano_lb = elem('div', {trg:ano, cls:'item_lb', html:_d })
 			var bar = elem('div', {trg:ano, cls:'bar'})
 		  var label = elem( 'div', {trg: ano, cls:'label', html:  format_number(d.valor[_i]) + ' ' + d.unidade })
@@ -853,11 +854,13 @@ function create_report(d){
 	var ranking = elem('div', {trg:indicator, cls:'chart'})
 	ranking.itens = []
 
-	$(d.ranking.maior).each(function(_i,_d){
+	$(d.ranking_list.ranking.maior).each(function(_i,_d){
 
 		var municipio = elem('div', {trg:ranking, cls:'item' })
 		var rank_lb = elem('div', {trg:municipio, cls:'item_lb', html: _d.RANKING + '&deg;' })
-		var label = elem( 'div', {trg: municipio, cls:'label', html: _d.MUNICIPIO + ' (' + _d.UF + '): ' + format_number(_d.VALOR) + ' ' + d.unidade })
+		var label = elem( 'div', {trg: municipio, cls:'label'})
+		var nome = elem('span', {trg: label, html: _d.MUNICIPIO + ' (' + _d.UF + ') '})
+		var valor = elem('span', {trg: label, cls:'valor', html: format_number(_d.VALOR) + ' ' + d.unidade})
 
 		ranking.itens.push(municipio)
 
@@ -866,16 +869,17 @@ function create_report(d){
 	var meio = elem('div', {trg:ranking, cls:'item' })
 	var meio_lb = elem('div', {trg:meio, cls:'item_lb', html: '...' })
 
-	$(d.ranking.menor).each(function(_i,_d){
+	$(d.ranking_list.ranking.menor).each(function(_i,_d){
 
 		var municipio = elem('div', {trg:ranking, cls:'item' })
 		var rank_lb = elem('div', {trg:municipio, cls:'item_lb', html: _d.RANKING + '&deg;' })
-		var label = elem( 'div', {trg: municipio, cls:'label', html: _d.MUNICIPIO + ' (' + _d.UF + '): ' + format_number(_d.VALOR) + ' ' + d.unidade })
+		var label = elem( 'div', {trg: municipio, cls:'label'})
+		var nome = elem('span', {trg: label, html: _d.MUNICIPIO + ' (' + _d.UF + ') '})
+		var valor = elem('span', {trg: label, cls:'valor', html: format_number(_d.VALOR) + ' ' + d.unidade})
 
 		ranking.itens.push(municipio)
 
 	})
-
 
 	report_ul.append(indicator)
 
@@ -929,6 +933,9 @@ function close_report(){
 
 report.csv = []
 
+var report_rankings = []
+
+
 function generate_report(){
 
 	if(!report.locked){
@@ -945,37 +952,39 @@ function generate_report(){
 
 		$(report_ul).html(null)
 
-		/*
-		erro aqui! Os rankings em cada indicador não podem vir
-		da lista de indicadores total, pois eles
-		precisam ser consultados para um ano específico.
-
-		ideal é uma nova solicitação que retorne o $(DATA.list).each abaixo.
-		O REQUEST	deve considerar:
-		1. área selecionada (RegionType + region)
-		2. indicadores SELECIONADOS [array de ids?]
-		3. ano escolhido em cada indicador [array de anos sincronizados?]
-
-		isso vai retornar um array com os rankings nos valores certos para
-		cada indicador:
-		id_indicador: {
-			maiores: [...],
-			menores: [...]
-		}
-		*/
-
-		$(DATA.list).each(function(i,d){
-			if(d.selected){
-				create_report(d)
-			}
-		})
-
 		report_container.open = true
 		$(report_container).addClass('open')
 		$(report_bt_label).text( language['close_report'][lang])
 
-		// vai para dentro do ajax com os rankings
-		remove_preloader()
+		report_rankings = []
+		var ranking_data = {}
+
+		// get rankings
+		$(DATA.list).each(function(i,d){
+			if(d.selected){
+
+				var rank_url = "http://maps.lapig.iesa.ufg.br/indicadores/ranking?id="+d.id+"&ano="+d.ano[d.val_id]
+				if( report.region != 'Brasil' ) rank_url += "&region=" + report.region
+				if( report.regionType != 'brasil' ) rank_url += "&regionType=" + report.regionType
+
+				ranking_data = $.get(rank_url, function(data) {
+			    d.ranking_list = data;
+			  })
+
+				report_rankings.push(ranking_data)
+			}
+		})
+
+		$.when.apply($, report_rankings).then(function () {
+
+				$(DATA.list).each(function(i,d){
+					if(d.selected){
+						create_report(d)
+					}
+				})
+			remove_preloader()
+		});
+
 	}
 }
 
