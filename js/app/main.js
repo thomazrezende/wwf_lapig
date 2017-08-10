@@ -151,7 +151,7 @@ function json2csv(JSONData, fileName, ReportTitle, ShowLabel) {
     if (CSV == '') {
         alert("Invalid data");
         return;
-    } 
+    }
 
     //Initialize file format you want csv or xls
     var uri = 'data:text/csv;charset=utf-8,' + escape(CSV);
@@ -309,7 +309,7 @@ $(map_type).on('mouseover', function(){
 	$(this).css({height: 45 })
 })
 
-function initMap(){
+function initMap(load_grid){
 
 	map = L.map('map', {
 		 crs: L.CRS.EPSG900913,
@@ -317,7 +317,8 @@ function initMap(){
 		 center: [-14.3186481,-56.0420371],
 		 zoom: 5,
 		 minZoom:3,
-		 maxZoom:15
+		 maxZoom:15,
+		 doubleClickZoom:false
 	 })
 
  	// zoom
@@ -358,6 +359,33 @@ function initMap(){
 	// default tile
 	resize_map(200)
 	set_tile(0)
+
+	if(load_grid){
+
+		// utf grid
+		utfgrid = new L.utfGridWMS("http://maps.lapig.iesa.ufg.br/ows?", {
+			layers: 'utfgrid_default'
+		});
+
+		utfgrid.on("mouseover", function(e){
+			$(tooltip).show()
+			$(tooltip_city).html( e.data.MUNICIPIO + " - " + e.data.UF)
+			// $(tooltip_val).html( format_number(e.data.VALOR))
+		}).on("mouseout", function(e){
+			$(tooltip).hide()
+		})
+
+		utfgrid.on("click", function(e){
+			if(e.data){
+				if(report_container.open)	close_report()
+				$(AREA.municipios.list).each(function(i,d){
+					if(d.cod_mu == e.data.COD_MUNICI) set_area_filter(d.li)
+				})
+			}
+		});
+
+		utfgrid.addTo(map);
+	}
 
 }
 

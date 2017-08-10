@@ -125,7 +125,7 @@ var mouse_x, mouse_y
 
 $(window).on('mousemove',function (e) {
 	e = e || window.event
-  e = $.event.fix(e)
+	e = $.event.fix(e)
 	mouse_x = e.pageX
 	mouse_y = e.pageY
 
@@ -247,7 +247,7 @@ function create_layer( d ){
 	layer.off = false
 	layer.obj = d
 
-  layers_list.prepend(layer);
+	layers_list.prepend(layer);
 
 	var layer_top = elem('div',{trg:layer, cls:'layer_top animate1'})
 
@@ -335,7 +335,7 @@ function create_layer( d ){
 
 	var download = elem('div', {trg:content, cls:'download', html: language.download[lang]})
 	$(download).on('click', function(){
-			window.open('http://maps.lapig.iesa.ufg.br/ows?REQUEST=GetFeature&SERVICE=wfs&VERSION=1.0.0&TYPENAME=' + this.ID + "_" + this.ano + '&OUTPUTFORMAT=shape-zip')
+		window.open('http://maps.lapig.iesa.ufg.br/ows?REQUEST=GetFeature&SERVICE=wfs&VERSION=1.0.0&TYPENAME=' + this.ID + "_" + this.ano + '&OUTPUTFORMAT=shape-zip')
 	})
 	download.ID = d.id
 	download.ano = d.ano
@@ -376,29 +376,32 @@ function create_layer( d ){
 	//slider > op_handle
 	op_handle.wms_layer = wms_layer
 
-	// utf grid
+
+	// utf grid (para cada camada)
+	/*
 	utfgrid = new L.utfGridWMS("http://maps.lapig.iesa.ufg.br/ows?", {
-		layers: d.id,
-		MSFILTER: ms_filter
-	});
+	layers: d.id,
+	MSFILTER: ms_filter
+});
 
-	utfgrid.on("mouseover", function(e){
-		$(tooltip).show()
-		$(tooltip_city).html( e.data.MUNICIPIO + " - " + e.data.UF)
-		$(tooltip_val).html( format_number(e.data.VALOR))
-	}).on("mouseout", function(e){
-		$(tooltip).hide()
-	})
+utfgrid.on("mouseover", function(e){
+$(tooltip).show()
+$(tooltip_city).html( e.data.MUNICIPIO + " - " + e.data.UF)
+$(tooltip_val).html( format_number(e.data.VALOR))
+}).on("mouseout", function(e){
+$(tooltip).hide()
+})
 
-	utfgrid.on("click", function(e){
-		if(e.data){
-			$(AREA.municipios.list).each(function(i,d){
-				if(d.cod_mu == 3511003) set_area_filter(d.li)
-			})
-		}
-	});
+utfgrid.on("click", function(e){
+if(e.data){
+$(AREA.municipios.list).each(function(i,d){
+if(d.cod_mu == 3511003) set_area_filter(d.li)
+})
+}
+});
 
-	utfgrid.addTo(map);
+utfgrid.addTo(map);
+*/
 }
 
 function remove_layer(d){
@@ -449,7 +452,7 @@ $(clear_report).on('click', function(){
 
 set('download_report')
 $(download_report).on('click', function(){
-	json2csv(report.csv, 'risco_socioambiental_' + report.region , 'Risco Socioambiental | ' + report.regionType + ' - ' + report.region + ' (http://riscosocioambiental.org/)', false)
+	json2csv(report.csv, 'risco_socioambiental_' + report.region , 'Risco Socioambiental - ' + report.title + ' (http://riscosocioambiental.org/)', false)
 })
 
 // INDICATORS
@@ -521,9 +524,9 @@ function get_area_label(type, reg) {
 		switch( convert_lb(type) ){
 
 			case 'Estados':
-				$(AREA.json.Estados).each(function(i,d){
-					if(reg == d.UF)	ret = d.ESTADO
-				})
+			$(AREA.json.Estados).each(function(i,d){
+				if(reg == d.UF)	ret = d.ESTADO
+			})
 
 			case 'Municipios':
 
@@ -582,8 +585,13 @@ function indicator_data(indicator, anos, valores){
 	})
 
 	// valor
-	if(indicator.valor[0])	$(indicator.data).removeClass('no_data').html(format_number(indicator.valor[0]) + ' ' + indicator.unidade)
-	else $(indicator.data).addClass('no_data').html(language['no_data'][lang])
+	if(indicator.valor[0]){
+		$(indicator.data).removeClass('no_data').html(format_number(indicator.valor[0]) + ' ' + indicator.unidade)
+		indicator.no_data = false
+	}	else {
+		$(indicator.data).addClass('no_data').html(language['no_data'][lang])
+		indicator.no_data = true
+	}
 }
 
 function create_indicator(d){
@@ -743,7 +751,6 @@ function update_report(d){
 		$(report.list).each(function(_i,_d){
 			if( _d.id == d.id){
 				remove_layer(_d)
-				remove_report(_d)
 				report.list.splice(_i,1)
 				_d = null
 			}
@@ -759,19 +766,7 @@ function update_report(d){
 
 }
 
-set('report_ul')
-
-function remove_report(d){
-
-	// $(report_itens).each(function(_i,_d){
-	// 	if(_d.obj == d){
-	// 		$(_d).remove()
-	// 		report_itens.splice(_i,1)
-	// 	}
-	// })
-
-}
-
+set('report_ul') 
 
 function create_report(d){
 
@@ -783,6 +778,8 @@ function create_report(d){
 	report.csv.push(csv_title)
 	report.csv.push(csv_description)
 
+	// evolução  csv
+	report.csv.push({div:language['evolution'][lang].toUpperCase()})
 	$(d.ano).each(function(_i,_d){
 		var csv_data = {
 			ano: _d,
@@ -792,6 +789,47 @@ function create_report(d){
 	})
 
 	report.csv.push({div:' '})
+
+	//ranking  csv
+	report.csv.push({div:'RANKING'})
+	var dm = d.ranking_list.ranking.RKmunicipioBR
+
+	if( dm ){
+		var csv_data = {
+			posicao: dm.RANKING,
+			municipio: dm.MUNICIPIO,
+			uf: dm.UF,
+			val:dm.VALOR
+		}
+		report.csv.push(csv_data)
+		report.csv.push({div:' '})
+	}
+
+	$(d.ranking_list.ranking.maior).each(function(_i,_d){
+		var csv_data = {
+			posicao: _d.RANKING,
+			municipio: _d.MUNICIPIO,
+			uf: _d.UF,
+			val:_d.VALOR
+		}
+		report.csv.push(csv_data)
+	})
+
+	report.csv.push({div:'...'})
+
+	$(d.ranking_list.ranking.menor).each(function(_i,_d){
+		var csv_data = {
+			posicao: _d.RANKING,
+			municipio: _d.MUNICIPIO,
+			uf: _d.UF,
+			val:_d.VALOR
+		}
+		report.csv.push(csv_data)
+	})
+
+	report.csv.push({div:' '})
+
+	// indicador
 
 	var indicator = elem('li', {trg:report_ul, cls:'indicator'})
 	indicator.obj = d
@@ -828,7 +866,7 @@ function create_report(d){
 			var ano = elem('div', {trg:evolution, cls:'item_bar' })
 			var ano_lb = elem('div', {trg:ano, cls:'item_lb', html:_d })
 			var bar = elem('div', {trg:ano, cls:'bar'})
-		  var label = elem( 'div', {trg: ano, cls:'label', html:  format_number(d.valor[_i]) + ' ' + d.unidade })
+			var label = elem( 'div', {trg: ano, cls:'label', html:  format_number(d.valor[_i]) + ' ' + d.unidade })
 
 			if(_i == d.val_id ) $(ano).addClass('selected')
 
@@ -844,9 +882,7 @@ function create_report(d){
 		$(evolution.itens).each(function(i,d){
 			$(d.bar).css({width: d.val / evolution.max * 100 + '%'})
 		})
-
 	}
-
 
 	// ranking
 
@@ -854,35 +890,60 @@ function create_report(d){
 	var ranking = elem('div', {trg:indicator, cls:'chart'})
 	ranking.itens = []
 
+	var dm_show = false // verificará se o municipio ja foi inserido
+
+ 	// maiores
 	$(d.ranking_list.ranking.maior).each(function(_i,_d){
+		var destaque = false
+		if(report.region == _d.COD_MUNICI){
+			dm_show = true
+			destaque = true
+		}
 
-		var municipio = elem('div', {trg:ranking, cls:'item' })
-		var rank_lb = elem('div', {trg:municipio, cls:'item_lb', html: _d.RANKING + '&deg;' })
-		var label = elem( 'div', {trg: municipio, cls:'label'})
-		var nome = elem('span', {trg: label, html: _d.MUNICIPIO + ' (' + _d.UF + ') '})
-		var valor = elem('span', {trg: label, cls:'valor', html: format_number(_d.VALOR) + ' ' + d.unidade})
-
+		var municipio = rk_item(ranking, d, _d, destaque)
 		ranking.itens.push(municipio)
-
 	})
 
-	var meio = elem('div', {trg:ranking, cls:'item' })
-	var meio_lb = elem('div', {trg:meio, cls:'item_lb', html: '...' })
+	//divisória + meio
+	rk_div(ranking)
+	var meio = elem('li', {trg:ranking})
 
+	//menores
 	$(d.ranking_list.ranking.menor).each(function(_i,_d){
+		var destaque = false
+		if(report.region == _d.COD_MUNICI){
+			dm_show = true
+			destaque = true
+		}
 
-		var municipio = elem('div', {trg:ranking, cls:'item' })
-		var rank_lb = elem('div', {trg:municipio, cls:'item_lb', html: _d.RANKING + '&deg;' })
-		var label = elem( 'div', {trg: municipio, cls:'label'})
-		var nome = elem('span', {trg: label, html: _d.MUNICIPIO + ' (' + _d.UF + ') '})
-		var valor = elem('span', {trg: label, cls:'valor', html: format_number(_d.VALOR) + ' ' + d.unidade})
-
+		var municipio = rk_item(ranking, d, _d, destaque)
 		ranking.itens.push(municipio)
 
 	})
+
+	// caso filtro = municipio
+	if(dm && !dm_show){
+		var municipio = rk_item(meio, d, dm, true)
+		rk_div(meio)
+	}
 
 	report_ul.append(indicator)
 
+}
+
+function rk_div(trg){
+	var divisoria = elem('div', {trg:trg, cls:'item' })
+	var meio_lb = elem('div', {trg:divisoria, cls:'item_lb', html: '&mdash;' })
+}
+
+function rk_item(trg, d, _d, selected){
+	var municipio = elem('div', {trg:trg, cls: selected ? 'selected item' : 'item' })
+	var rank_lb = elem('div', {trg:municipio, cls:'item_lb', html: _d.RANKING + '&deg;' })
+	var label = elem( 'div', {trg: municipio, cls: 'label'})
+	var nome = elem('span', {trg: label, html: _d.MUNICIPIO + ' (' + _d.UF + ') '})
+	var valor = elem('span', {trg: label, cls:'valor', html: format_number(_d.VALOR) + ' ' + d.unidade})
+
+	return municipio
 }
 
 function check_layers(){
@@ -935,7 +996,6 @@ report.csv = []
 
 var report_rankings = []
 
-
 function generate_report(){
 
 	if(!report.locked){
@@ -943,9 +1003,9 @@ function generate_report(){
 		set_preloader()
 
 		// altera dados no header do relatorio
-		if(report.regionType != 'brasil') $(report_category).html(report.regionType)
+		if(report.regionType != 'brasil') $(report_category).html( language[ report.regionType.toLowerCase()][lang]  )
 		else $(report_category).html('')
-		$(report_area).html( report.region)
+		$(report_area).html( report.title )
 
 		// prepara objeto para csv
 		report.csv = []
@@ -961,31 +1021,42 @@ function generate_report(){
 
 		// get rankings
 		$(DATA.list).each(function(i,d){
-			if(d.selected){
+			if(d.selected && !d.no_data){
 
 				var rank_url = "http://maps.lapig.iesa.ufg.br/indicadores/ranking?id="+d.id+"&ano="+d.ano[d.val_id]
 				if( report.region != 'Brasil' ) rank_url += "&region=" + report.region
 				if( report.regionType != 'brasil' ) rank_url += "&regionType=" + report.regionType
+				console.log(rank_url);
 
 				ranking_data = $.get(rank_url, function(data) {
-			    d.ranking_list = data;
-			  })
+					d.ranking_list = data;
+				})
 
 				report_rankings.push(ranking_data)
 			}
 		})
 
-		$.when.apply($, report_rankings).then(function () {
+		defCalls();
 
-				$(DATA.list).each(function(i,d){
-					if(d.selected){
-						create_report(d)
-					}
-				})
-			remove_preloader()
-		});
 
 	}
+}
+
+function defCalls(){
+	var def = $.Deferred();
+	$.when.apply(null, report_rankings).done(function () {
+
+		$(DATA.list).each(function(i,d){
+			if(d.selected && !d.no_data){
+				create_report(d)
+			}
+		})
+		remove_preloader()
+		setTimeout(function(){
+			def.resolve();
+		},2000)
+	})
+	return def.promise();
 }
 
 // sessionStorage.clear()
@@ -1071,8 +1142,8 @@ function check_categ(){
 			if( !d.selected ) {
 				$(d).addClass('hide')
 			}else{
-				 $(d).removeClass('hide')
-				 listed++
+				$(d).removeClass('hide')
+				listed++
 			}
 		}else{
 			if( d.categ.indexOf(CATEG.name) < 0 ){
@@ -1188,7 +1259,7 @@ window.onkeydown = function (event) {
 			search.value = ''
 		}
 		if(event.which == 13){
-			  submit_search()
+			submit_search()
 		}
 	}
 }
@@ -1253,85 +1324,85 @@ function create_area_list(bt_origin, lb, itens){
 	switch(lb){
 
 		case 'Estados':
-			sort_on(itens, 'ESTADO', false, false)
-			$(itens).each(function(i,d){
-				area_filter_li(d.ESTADO, filter_ul, false, 'estado', d.UF);
-			})
+		sort_on(itens, 'ESTADO', false, false)
+		$(itens).each(function(i,d){
+			area_filter_li(d.ESTADO, filter_ul, false, 'estado', d.UF);
+		})
 		break
 
 		case 'Municipios':
 
-			// sobrescreve dados para acomodar search field
-			$(filter_ul).css({top:80, paddingTop:20, height:'calc(100% - 160px)'})
-			municipios_ul = filter_ul
+		// sobrescreve dados para acomodar search field
+		$(filter_ul).css({top:80, paddingTop:20, height:'calc(100% - 160px)'})
+		municipios_ul = filter_ul
 
-			search_container = container
+		search_container = container
 
-			// search field
-			var search = elem('input', {trg:container, id:'search'})
-			$(search).attr('placeholder', language.search_city[lang])
+		// search field
+		var search = elem('input', {trg:container, id:'search'})
+		$(search).attr('placeholder', language.search_city[lang])
 
-			//search_bt
-			search_bt = elem('div', {trg:container,  id:'search_bt'})
-			$(search_bt).on('click', function(){
-				submit_search()
+		//search_bt
+		search_bt = elem('div', {trg:container,  id:'search_bt'})
+		$(search_bt).on('click', function(){
+			submit_search()
+		})
+
+		var label = elem('label', {trg:search_bt, cls:'animate1 bt_label', html:language.search[lang]})
+		var icon = elem('div', {trg:search_bt, cls:'icon icon25 animate1 bt_icon'})
+		$(icon).append(icons.lupa)
+
+		//search_cancel_bt
+		search_cancel_bt = elem('div', {trg:container,  id:'search_cancel_bt'})
+		$(search_cancel_bt).on('click', function(){
+			reset_search()
+		})
+		$(search_cancel_bt).hide()
+
+		var label = elem('label', {trg:search_cancel_bt, cls:'animate1 bt_label', html:language.cancel[lang]})
+		var icon = elem('div', {trg:search_cancel_bt, cls:'icon icon25 animate1 bt_icon'})
+		$(icon).append(icons.x)
+
+		$(search).on('focus',function(){
+			search.focus = true
+		})
+
+		$(search).on('blur',function(){
+			search.focus = false
+		})
+
+		// lista de municípios
+		for(var i in itens){
+			$(itens[i]).each(function(_i,_d){
+				var li = area_filter_li(i + ' - ' + _d.nome, filter_ul, false, 'municipio', _d.cod_mu);
+				var obj = {}
+				obj.li = li
+				obj.uf = i
+				obj.nome = _d.nome
+				obj.cod_mu = _d.cod_mu
+				obj.index = removeSpaces(removeAccents(_d.nome.toLowerCase()),'-')
+				AREA.municipios.list.push(obj)
 			})
-
-			var label = elem('label', {trg:search_bt, cls:'animate1 bt_label', html:language.search[lang]})
-			var icon = elem('div', {trg:search_bt, cls:'icon icon25 animate1 bt_icon'})
-			$(icon).append(icons.lupa)
-
-			//search_cancel_bt
-			search_cancel_bt = elem('div', {trg:container,  id:'search_cancel_bt'})
-			$(search_cancel_bt).on('click', function(){
-				reset_search()
-			})
-			$(search_cancel_bt).hide()
-
-			var label = elem('label', {trg:search_cancel_bt, cls:'animate1 bt_label', html:language.cancel[lang]})
-			var icon = elem('div', {trg:search_cancel_bt, cls:'icon icon25 animate1 bt_icon'})
-			$(icon).append(icons.x)
-
-			$(search).on('focus',function(){
-				search.focus = true
-			})
-
-			$(search).on('blur',function(){
-				search.focus = false
-			})
-
-			// lista de municípios
-			for(var i in itens){
-				$(itens[i]).each(function(_i,_d){
-					var li = area_filter_li(i + ' - ' + _d.nome, filter_ul, false, 'municipio', _d.cod_mu);
-					var obj = {}
-					obj.li = li
-					obj.uf = i
-					obj.nome = _d.nome
-					obj.cod_mu = _d.cod_mu
-					obj.index = removeSpaces(removeAccents(_d.nome.toLowerCase()),'-')
-					AREA.municipios.list.push(obj)
-				})
-			}
+		}
 		break
 
 		case 'Biomas':
-			sort_on(itens, 'BIOMA', false, false)
-			$(itens).each(function(i,d){
-				area_filter_li(d.BIOMA, filter_ul, false, 'bioma', d.BIOMA);
-			})
+		sort_on(itens, 'BIOMA', false, false)
+		$(itens).each(function(i,d){
+			area_filter_li(d.BIOMA, filter_ul, false, 'bioma', d.BIOMA);
+		})
 		break
 
 		case 'Regioes':
-			sort_on(itens, 'nome', false, false)
-			$(itens).each(function(i,d){
-				area_filter_li(d.nome, filter_ul, false, 'regiao', d.nome);
-			})
+		sort_on(itens, 'nome', false, false)
+		$(itens).each(function(i,d){
+			area_filter_li(d.nome, filter_ul, false, 'regiao', d.nome);
+		})
 		break
 
 		case 'Bacias':
-			//sort
-			// sem dados
+		//sort
+		// sem dados
 		break
 
 	}
@@ -1393,8 +1464,6 @@ function set_area_filter(itm){
 	check_filters()
 
 	// 1 carrega dados novos nos indicadores (list + report)
-
-
 	var url = 'http://maps.lapig.iesa.ufg.br/indicadores/lista'
 	if(itm.regionType != 'brasil' ) url += '?regionType=' + itm.regionType
 	if(itm.region != 'brasil' ) url += '&region=' + itm.region
@@ -1419,22 +1488,21 @@ function set_area_filter(itm){
 	map.addLayer(wms_limits)
 	wms_limits.setZIndex(1000)
 
-
-	// 3 guarda dados da seleçaão para report.csv
-
+	// 3 guarda dados da seleçaão para report.csv e rankings
 	report.regionType = itm.regionType
-	report.region = toTitleCase(itm.lb)
-	if(report.region.indexOf('-') > 0) {
-		var uf_nome = report.region.split(' - ')
-		report.region = toTitleCase(uf_nome[1]) + ' - ' + uf_nome[0].toUpperCase()
+	report.region = itm.region
+	report.title = toTitleCase(itm.lb)
+	if(report.title.indexOf('-') > 0) {
+		var uf_nome = report.title.split(' - ')
+		report.title = toTitleCase(uf_nome[1]) + ' - ' + uf_nome[0].toUpperCase()
 	}
 	//capitular
-	report.region.replace(/\b[a-z]/g,function(f){return f.toUpperCase()});
+	report.title.replace(/\b[a-z]/g,function(f){return f.toUpperCase()});
 
 }
 
 function toTitleCase(str){
-  return str.replace(/\w\S*/g, function(txt){return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase();});
+	return str.replace(/\w\S*/g, function(txt){return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase();});
 }
 
 function convert_lang(lb){
@@ -1444,12 +1512,13 @@ function convert_lang(lb){
 	}
 }
 
+
 //start
 
 // etapa 0
 var regions_url = 'http://maps.lapig.iesa.ufg.br/indicadores/regions'
 ajax( regions_url, AREA, 'load_floating_lists', [] )
-initMap()
+initMap(true)
 
 // MAP REPORT
 check_session_report()

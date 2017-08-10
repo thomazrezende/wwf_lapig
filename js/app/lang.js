@@ -274,6 +274,10 @@ var language = {
 		_pt:'MUNICÍPIOS',
 		_en:'CITIES'
 	},
+	municipio:{
+		_pt:'MUNICÍPIO',
+		_en:'CITY'
+	},
 	bioma:{
 		_pt:'BIOMA',
 		_en:'BIOME'
