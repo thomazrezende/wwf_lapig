@@ -236,7 +236,6 @@ $(msg_report).html(language['no_indicators'][lang])
 var sort_layers_msg = elem('div', {id:'sort_layers_msg', trg:layers})
 $(sort_layers_msg).html(language['sort_msg'][lang])
 
-
 function create_layer( d ){
 
 	var layer = elem('li', { id: 'layer_' + d.id, trg:layers_list })
@@ -308,6 +307,8 @@ function create_layer( d ){
 	.addClass('animate2')
 	layer.content = content
 
+	var fill = elem('div', {trg:content, cls:'fill'})
+
 	var legend = elem('img', {trg:content})
 	$(legend).attr('src','http://m2.lapig.iesa.ufg.br/ows?EXCEPTIONS=application%2Fvnd.ogc.se_xml&TRANSPARENT=TRUE&VERSION=1.1.1&SERVICE=WMS&REQUEST=GetLegendGraphic&LAYER=' + d.id + '&format=image%2Fpng')
 
@@ -324,21 +325,21 @@ function create_layer( d ){
 		}
 	})
 
-	var remove = elem('div', {trg:content, cls:'remove', html: language.remove[lang]})
-	$(remove).on('click', function(){
-		var ID = this.ID
-		$(DATA.list).each(function(_i,_d){
-			if(_d.id == ID) toggle_check_indicator(_d)
-		})
-	})
-	remove.ID = d.id
-
-	var download = elem('div', {trg:content, cls:'download', html: language.download[lang]})
-	$(download).on('click', function(){
-		window.open('http://maps.lapig.iesa.ufg.br/ows?REQUEST=GetFeature&SERVICE=wfs&VERSION=1.0.0&TYPENAME=' + this.ID + "_" + this.ano + '&OUTPUTFORMAT=shape-zip')
-	})
-	download.ID = d.id
-	download.ano = d.ano
+	// var remove = elem('div', {trg:content, cls:'remove', html: language.remove[lang]})
+	// $(remove).on('click', function(){
+	// 	var ID = this.ID
+	// 	$(DATA.list).each(function(_i,_d){
+	// 		if(_d.id == ID) toggle_check_indicator(_d)
+	// 	})
+	// })
+	// remove.ID = d.id
+	//
+	// var download = elem('div', {trg:content, cls:'download', html: language.download[lang]})
+	// $(download).on('click', function(){
+	// 	window.open('http://maps.lapig.iesa.ufg.br/ows?REQUEST=GetFeature&SERVICE=wfs&VERSION=1.0.0&TYPENAME=' + this.ID + "_" + this.ano + '&OUTPUTFORMAT=shape-zip')
+	// })
+	// download.ID = d.id
+	// download.ano = d.ano
 
 	var hit = elem('div', { trg:layer })
 	$(hit)
@@ -664,11 +665,32 @@ function create_indicator(d){
 	data_add.indicator = indicator
 	indicator.data_add = data_add
 
-	var data_add_lb_off = elem('span', {trg:data_add, cls:'lb_off lg_add_to_report', html:'INCLUIR '})
-	var data_add_lb_on = elem('span', {trg:data_add, cls:'lb_on lg_remove_from_report', html:' REMOVER'})
+	var data_add_lb_off = elem('span', {trg:data_add, cls:'lb_off lg_add_to_report', html:language['map'][lang]})
+	var data_add_lb_on = elem('span', {trg:data_add, cls:'lb_on lg_remove_from_report', html:language['remove'][lang]})
 
 	var data_add_icon = elem('div', {trg:data_add, cls:'icon icon15 animate2'})
 	$(data_add_icon).append(icons.plus)
+
+	var data_csv = elem('div', {trg:data_box_bts, id:'data_csv', cls:'data_download animate2',html:'.CSV'})
+	$(data_csv).on('click', function(){
+		console.log('csv_link: ', this.indicator.id, this.indicator.ano[this.indicator.val_id]);
+	})
+	data_csv.indicator = indicator
+	var data_csv_icon = elem('div', {trg:data_csv, cls:'icon icon25'})
+	$(data_csv_icon).append(icons.download)
+
+	var data_shf = elem('div', {trg:data_box_bts, id:'data_shf', cls:'data_download animate2',html:'.SHF'})
+	$(data_shf).on('click', function(){
+		window.open('http://maps.lapig.iesa.ufg.br/ows?REQUEST=GetFeature&SERVICE=wfs&VERSION=1.0.0&TYPENAME=' + this.indicator.id + "_" + this.indicator.ano[this.indicator.val_id] + '&OUTPUTFORMAT=shape-zip')
+	})
+	data_shf.indicator = indicator
+	var data_shf_icon = elem('div', {trg:data_shf, cls:'icon icon25'})
+	$(data_shf_icon).append(icons.download)
+
+	// 	window.open('http://maps.lapig.iesa.ufg.br/ows?REQUEST=GetFeature&SERVICE=wfs&VERSION=1.0.0&TYPENAME=' + this.ID + "_" + this.ano + '&OUTPUTFORMAT=shape-zip')
+	// })
+	// download.ID = d.id
+	// download.ano = d.ano
 
 	// set default data
 	indicator_data(indicator, d.ano, d.valor)
@@ -766,7 +788,7 @@ function update_report(d){
 
 }
 
-set('report_ul') 
+set('report_ul')
 
 function create_report(d){
 

@@ -75,6 +75,10 @@ var language = {
 		_pt:'NOVA CAMADA',
 		_en:'NEW LAYER'
 	},
+	add:{
+		_pt:'EXIBIR',
+		_en:'ADD'
+	},
 	remove:{
 		_pt:'REMOVER',
 		_en:'REMOVE'
