@@ -238,6 +238,10 @@ var language = {
 		_pt:'PECUÁRIA',
 		_en:'LIVESTOCK'
 	},
+	economico:{
+		_pt:'ECONÔMICO',
+		_en:'ECONOMIC'
+	},
 	social:{
 		_pt:'SOCIAL',
 		_en:'SOCIAL'

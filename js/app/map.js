@@ -23,6 +23,7 @@ set('tooltip_val')
 
 $(tooltip).hide()
 
+var indicator_val
 var map_itens = []
 var report_itens = []
 var report = {}
@@ -498,7 +499,7 @@ DATA.update_indicators_data = function(regionType, region){
 
 			if(d.id == _d.id){
 				// set default data
-				indicator_data(d, _d.ano, _d.valor)
+				indicator_data(d, _d.ano, _d.valor, _d.area_ha)
 			}
 		})
 	})
@@ -558,11 +559,12 @@ function convert_lb(lb){
 }
 
 // etapa 7
-function indicator_data(indicator, anos, valores){
+function indicator_data(indicator, anos, valores, area){
 
 	indicator.ano = anos.reverse()
 	indicator.valor = valores.reverse()
 	indicator.val_id = 0
+	indicator.area = area
 
 	// ano
 	$(indicator.year).html(null)
@@ -587,12 +589,18 @@ function indicator_data(indicator, anos, valores){
 
 	// valor
 	if(indicator.valor[0]){
-		$(indicator.data).removeClass('no_data').html(format_number(indicator.valor[0]) + ' ' + indicator.unidade)
+		indicator_val = format_number( indicator.valor[0] ) + ' ' + indicator.unidade
+		if(indicator.unidade == 'ha') indicator_val += " (" + percent(indicator.valor[0], indicator.area) + ")"
+		$(indicator.data).removeClass('no_data').html(indicator_val)
 		indicator.no_data = false
 	}	else {
 		$(indicator.data).addClass('no_data').html(language['no_data'][lang])
 		indicator.no_data = true
 	}
+}
+
+function percent(n1,n2){
+	return (n1 / n2 * 100).toFixed(2) + '%'
 }
 
 function create_indicator(d){
@@ -649,7 +657,9 @@ function create_indicator(d){
 	.on('change', function(){
 		var val = $(this).val()
 		this.indicator.val_id = val
-		$(this.indicator.data).html( format_number(this.indicator.valor[val]) + ' ' + indicator.unidade )
+		indicator_val = format_number( this.indicator.valor[val]) + ' ' + this.indicator.unidade
+		if(this.indicator.unidade == 'ha') indicator_val += " (" + percent(this.indicator.valor[val], this.indicator.area) + ")"
+		$(this.indicator.data).html( indicator_val)
 		$(this.indicator.year).html( ' | ' + indicator.ano[val] + ' (+)' )
 	})
 	data_select.indicator = indicator
@@ -693,7 +703,7 @@ function create_indicator(d){
 	// download.ano = d.ano
 
 	// set default data
-	indicator_data(indicator, d.ano, d.valor)
+	indicator_data(indicator, d.ano, d.valor, d.area_ha)
 
 }
 
@@ -866,8 +876,11 @@ function create_report(d){
 	else  $(title).html(d.nome)
 
 	var data = elem('div', {trg:header, cls:'data'})
-	if(d.valor[d.val_id]) $(data).html( format_number(d.valor[d.val_id]) + ' ' + d.unidade )
+	indicator_val = format_number(d.valor[d.val_id]) + ' ' + d.unidade
+	if(d.unidade == 'ha') indicator_val += " (" + percent(d.valor[d.val_id], d.area) + ")"
+ 	if(d.valor[d.val_id]) $(data).html(indicator_val)
 	else $(data).addClass('no_data').html( language['no_data'][lang] )
+
 
 	var text = elem('div', {trg:indicator, cls:'text', html:d.descricao})
 
@@ -888,7 +901,10 @@ function create_report(d){
 			var ano = elem('div', {trg:evolution, cls:'item_bar' })
 			var ano_lb = elem('div', {trg:ano, cls:'item_lb', html:_d })
 			var bar = elem('div', {trg:ano, cls:'bar'})
-			var label = elem( 'div', {trg: ano, cls:'label', html:  format_number(d.valor[_i]) + ' ' + d.unidade })
+
+			indicator_val = format_number(d.valor[_i]) + ' ' + d.unidade
+			if(d.unidade == 'ha') indicator_val += " (" + percent(d.valor[_i], d.area) + ")" 
+			var label = elem( 'div', {trg: ano, cls:'label', html:indicator_val })
 
 			if(_i == d.val_id ) $(ano).addClass('selected')
 
@@ -1067,7 +1083,6 @@ function generate_report(){
 function defCalls(){
 	var def = $.Deferred();
 	$.when.apply(null, report_rankings).done(function () {
-
 		$(DATA.list).each(function(i,d){
 			if(d.selected && !d.no_data){
 				create_report(d)
@@ -1131,9 +1146,11 @@ function create_categ_filter(i, lb, sel){
 		set_categ_filter(this)
 	})
 	filter.ID = i
-	filter.categ = lb
 	filter.lb = language[lb][lang]
+	filter.lb = lb
 	CATEG.itens.push(filter)
+
+	console.log('bug: ' + lb);
 }
 
 function set_categ_filter(itm){
