@@ -903,7 +903,7 @@ function create_report(d){
 			var bar = elem('div', {trg:ano, cls:'bar'})
 
 			indicator_val = format_number(d.valor[_i]) + ' ' + d.unidade
-			if(d.unidade == 'ha') indicator_val += " (" + percent(d.valor[_i], d.area) + ")" 
+			if(d.unidade == 'ha') indicator_val += " (" + percent(d.valor[_i], d.area) + ")"
 			var label = elem( 'div', {trg: ano, cls:'label', html:indicator_val })
 
 			if(_i == d.val_id ) $(ano).addClass('selected')
@@ -1146,16 +1146,14 @@ function create_categ_filter(i, lb, sel){
 		set_categ_filter(this)
 	})
 	filter.ID = i
-	filter.lb = language[lb][lang]
 	filter.lb = lb
 	CATEG.itens.push(filter)
-
-	console.log('bug: ' + lb);
+	console.log(filter.ID);
 }
 
 function set_categ_filter(itm){
 	CATEG.id = itm.ID
-	CATEG.name = itm.categ
+	CATEG.name = itm.lb
 	$(CATEG.itens).each(function(i,d){
 		if(i == itm.ID) $(d).addClass('selected')
 		else $(d).removeClass('selected')
@@ -1164,7 +1162,7 @@ function set_categ_filter(itm){
 	check_categ()
 
 	//bt label
-	$(indicators_bt_lb2).html(itm.lb)
+	$(indicators_bt_lb2).html(language[itm.lb][lang])
 
 	close_floatings()
 	check_filters()
@@ -1185,6 +1183,7 @@ function check_categ(){
 				listed++
 			}
 		}else{
+			console.log(d.categ);
 			if( d.categ.indexOf(CATEG.name) < 0 ){
 				$(d).addClass('hide')
 			}else{
