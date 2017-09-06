@@ -16,13 +16,6 @@ var pages = [
 		module:'map.js',
 		map:true
 	},
-	// {
-	// 	page:'report.html',
-	// 	lg: 'report',
-	// 	icon: 'report',
-	// 	module:'report.js',
-	// 	map:true
-	// },
 	{
 		page:'about.html',
 		lg: 'about',
@@ -64,10 +57,10 @@ $(menu)
 
 // top_bar
 
-set('logo_rsa_map')
+set('logo_rsa_top')
 
-if(logo_rsa_map){
-	$(logo_rsa_map).on('click', function(){
+if(logo_rsa_top){
+	$(logo_rsa_top).on('click', function(){
 		navigate(0, animate1, '')
 	})
 }
@@ -117,9 +110,21 @@ $(pages).each(function(i,d){
 
 // share
 
+function share_window(url, winWidth, winHeight) {
+	var winTop = (screen.height / 2) - (winHeight / 2);
+	var winLeft = (screen.width / 2) - (winWidth / 2);
+	window.open(url, 'sharer', 'top=' + winTop + ',left=' + winLeft + ',toolbar=0,status=0,width=' + winWidth + ',height=' + winHeight);
+}
+
+var share_url = 'http://riscosocioambiental.org/'
+var share_title = {
+	_pt:'Risco Socioambiental para Commodities',
+	_en:'Environmental & Social Risk for Commodities'
+}
+
 var share_pages = [
-	{ label: 'FACEBOOK', id: 'fbook' },
-	{ label: 'TWITTER', id: 'twitter' }
+	{ label: 'FACEBOOK', id: 'fbook', url:'https://www.facebook.com/share.php?u='+share_url+'&title=' + share_title[lang] },
+	{ label: 'TWITTER', id: 'twitter', url:'https://twitter.com/intent/tweet?status='+ share_title[lang] + ' ' + share_url }
 ]
 
 var share_ul = elem('ul', {trg:menu})
@@ -132,10 +137,11 @@ $(share_pages).each(function(i,d){
 	.addClass('share_li')
 	.addClass('animate1')
 	.on('click', function(){
-		console.log('share ' + this.id);
+		share_window(this.url, 550, 300)
 	})
 
 	share_li.id = d.id
+	share_li.url = d.url
 
 	var icon = elem('div', {trg:share_li})
 	$(icon)

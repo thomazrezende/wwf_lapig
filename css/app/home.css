@@ -26,7 +26,7 @@
 	height: 100%;
 	background: #f7fafa;
 	z-index: 3;
-	opacity: .7;
+	opacity: .85;
 }
 
 #logo_rsa_home{
@@ -82,7 +82,7 @@
 }
 
 #intro{
-	width: 550px;
+	width: 500px;
 	position: absolute;
 	left: 0;
 	right: 0;
@@ -131,7 +131,7 @@
 	bottom: 0;
 	z-index: 4;
 	font-size: 14px;
-	font-weight: 400;
+	font-weight: 600;
 }
 
 #read_more .icon25{

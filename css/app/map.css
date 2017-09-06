@@ -1172,24 +1172,6 @@
 	opacity: 1;
 }
 
-#logo_rsa_map{
-	width: 250px;
-	height: 80px;
-	position: absolute;
-	z-index: 4;
-	left: 0;
-	right: 0;
-	top: 0;
-	margin: auto;
-	background-color: rgba(255,255,255,.9);
-	background-size: 85%;
-	background-position: center;
-	background-repeat: no-repeat;
-	cursor: pointer;
-}
-
-._pt #logo_rsa_map {background-image: url('../../layout/logo_rsa_pt.png');}
-._en #logo_rsa_map {background-image: url('../../layout/logo_rsa_en.png');}
 
 
 /* layers */

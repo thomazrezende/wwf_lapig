@@ -224,7 +224,7 @@ var language = {
 		_en:'EXPLORE MAP'
 	},
 	intro:{
-		_pt:'Lorem ipsum dolor pt. Sit amet voluptas venenatis amet sit. Pellentesque ante mus sed tellus suspendisse excepteur vestibulum sed sem vel feugiat. Nulla leo dis odio iaculis venenatis. Tellus quis magna maecenas ligula euismod praesent pariatur diam.',
+		_pt:'Bem-vindos ao portal Risco Socioambiental. Aqui você poderá identificar potenciais impactos ambientais e sociais ligados à produção agrícola no Brasil.',
 		_en:'Lorem ipsum dolor en. Sit amet voluptas venenatis amet sit. Pellentesque ante mus sed tellus suspendisse excepteur vestibulum sed sem vel feugiat. Nulla leo dis odio iaculis venenatis. Tellus quis magna maecenas ligula euismod praesent pariatur diam.'
 	},
 

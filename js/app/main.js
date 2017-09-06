@@ -443,12 +443,14 @@ function set_tile(id){
 }
 
 function resize_map(delay){
-	var strech = setInterval(function(){
-		map.invalidateSize()
-	}, 2 )
-	setTimeout(function(){
-		clearInterval(strech)
-	}, delay)
+	if(page < 2){
+		var strech = setInterval(function(){
+			map.invalidateSize()
+		}, 2 )
+		setTimeout(function(){
+			clearInterval(strech)
+		}, delay)
+	}
 }
 
 // google maps
@@ -462,6 +464,7 @@ document.getElementsByTagName("head")[0].appendChild(script);
 function teste_gmaps(){
 	console.log('gmaps v=3.26 loaded!');
 }
+
 
 
 /*

@@ -182,6 +182,64 @@ b,.semibold{ font-weight:600}
 }
 .open .arrow { transform: rotate(180deg) }
 
+
+#logo_rsa_top{
+	width: 250px;
+	height: 80px;
+	position: absolute;
+	z-index: 4;
+	left: 0;
+	right: 0;
+	top: 0;
+	margin: auto;
+	background-color: rgba(255,255,255,.9);
+	background-size: 85%;
+	background-position: center;
+	background-repeat: no-repeat;
+	cursor: pointer;
+}
+
+._pt #logo_rsa_top {background-image: url('../../layout/logo_rsa_pt.png');}
+._en #logo_rsa_top {background-image: url('../../layout/logo_rsa_en.png');}
+
+/*about*/
+
+#about_container{
+	width: 100%;
+	height: 100%;
+	position: relative;
+	left: 0;
+}
+
+.menu_mode #about_container{
+		left: 100px;
+		width: calc(100% - 100px);
+}
+
+.text_about{
+	width: 90%;
+	max-width: 700px;
+	padding-top: 150px;
+	padding-bottom: 100px;
+	color: #333;
+	margin: auto;
+	font-size: 18px;
+	line-height: 24px;
+	display: none;
+}
+
+._pt #text_about_pt{ display: block}
+._en #text_about_en{ display: block }
+
+.text_about p{
+	margin-bottom: 24px;
+}
+
+.text_about a:link{	color: #33cccc; font-weight: 600; text-decoration: none }
+.text_about a:hover{	color: #33cccc; font-weight: 600; text-decoration: underline; }
+.text_about a:active{	color: #33cccc; font-weight: 600; text-decoration: none }
+.text_about a:visited{	color: #33cccc; font-weight: 600; text-decoration: none }
+
 /* top bar */
 
 #top_bar{
