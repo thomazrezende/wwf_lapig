@@ -29,6 +29,7 @@ var report_itens = []
 var report = {}
 report.locked = true // destrava ao final de update_indicators_data
 var utfgrid
+var bounds // recebe as coordenadas do area_filter atual
 
 $(dbody).addClass('data_mode preloader_mode')
 
@@ -326,22 +327,6 @@ function create_layer( d ){
 		}
 	})
 
-	// var remove = elem('div', {trg:content, cls:'remove', html: language.remove[lang]})
-	// $(remove).on('click', function(){
-	// 	var ID = this.ID
-	// 	$(DATA.list).each(function(_i,_d){
-	// 		if(_d.id == ID) toggle_check_indicator(_d)
-	// 	})
-	// })
-	// remove.ID = d.id
-	//
-	// var download = elem('div', {trg:content, cls:'download', html: language.download[lang]})
-	// $(download).on('click', function(){
-	// 	window.open('http://maps.lapig.iesa.ufg.br/ows?REQUEST=GetFeature&SERVICE=wfs&VERSION=1.0.0&TYPENAME=' + this.ID + "_" + this.ano + '&OUTPUTFORMAT=shape-zip')
-	// })
-	// download.ID = d.id
-	// download.ano = d.ano
-
 	var hit = elem('div', { trg:layer })
 	$(hit)
 	.addClass('layer_hit')
@@ -378,32 +363,6 @@ function create_layer( d ){
 	//slider > op_handle
 	op_handle.wms_layer = wms_layer
 
-
-	// utf grid (para cada camada)
-	/*
-	utfgrid = new L.utfGridWMS("http://maps.lapig.iesa.ufg.br/ows?", {
-	layers: d.id,
-	MSFILTER: ms_filter
-});
-
-utfgrid.on("mouseover", function(e){
-$(tooltip).show()
-$(tooltip_city).html( e.data.MUNICIPIO + " - " + e.data.UF)
-$(tooltip_val).html( format_number(e.data.VALOR))
-}).on("mouseout", function(e){
-$(tooltip).hide()
-})
-
-utfgrid.on("click", function(e){
-if(e.data){
-$(AREA.municipios.list).each(function(i,d){
-if(d.cod_mu == 3511003) set_area_filter(d.li)
-})
-}
-});
-
-utfgrid.addTo(map);
-*/
 }
 
 function remove_layer(d){
@@ -496,17 +455,32 @@ DATA.update_indicators_data = function(regionType, region){
 
 	$(DATA.list).each(function(i,d){ // LISTA DE INDICADORES NO PAINEL
 		$(DATA.json).each(function(_i,_d){
-
 			if(d.id == _d.id){
-				// set default data
 				indicator_data(d, _d.ano, _d.valor, _d.area_ha)
 			}
 		})
 	})
 
+	// bounds
+	set_bounds(DATA.json[0].bbox)
+
 	report.locked = false
 	remove_preloader()
 
+}
+
+function set_bounds(b){
+	var b1 = b.split('[[').join('')
+	b1 = b1.split(']]').join('')
+	var b2 = b1.split('], [')
+	var bounds = [[],[]]
+	$(b2).each(function(i,d){
+		var b3 = d.split(',')
+		$(b3).each(function(_i,_d){
+			bounds[i].push(Number(_d))
+		})
+	})
+	map.fitBounds(bounds);
 }
 
 
@@ -614,7 +588,6 @@ function create_indicator(d){
 	indicator.descricao = d.descricao
 	indicator.categ = normalize_categs(d.categ)
 	indicator.unidade = d.unidade
-
 	indicator.tipo = d.tipo
 
 	DATA.list.push(indicator)
@@ -1148,7 +1121,6 @@ function create_categ_filter(i, lb, sel){
 	filter.ID = i
 	filter.lb = lb
 	CATEG.itens.push(filter)
-	console.log(filter.ID);
 }
 
 function set_categ_filter(itm){
@@ -1508,7 +1480,6 @@ function set_area_filter(itm){
 
 	ajax( url, DATA, 'update_indicators_data', [itm.regionType, itm.region] )
 
-
 	// 2 carrega mascara no mapa
 	if(wms_limits) map.removeLayer(wms_limits)
 
@@ -1519,7 +1490,7 @@ function set_area_filter(itm){
 		width:512,
 		height:512,
 		srs:'EPSG:900913',
-		MSFILTER:'"[name]"="'+itm.region+'"',
+		MSFILTER:'"[name]"="' + itm.region + '"',
 		updateWhenIdle:true
 	});
 
