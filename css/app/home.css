@@ -47,7 +47,7 @@
 ._en #logo_rsa_home {background-image: url('../../layout/logo_rsa_en.png');}
 
 #logos_home{
-	width: 220px;
+	width: 250px;
 	height: 100px;
 	position: absolute;
 	top:30px;
@@ -75,6 +75,7 @@
 
 #logos_home #logo_lapig{
 	right: 0;
+	width: 110px;
 	background-image: url('../../layout/logo_lapig.png');
 	background-size: contain;
 	background-position: center;

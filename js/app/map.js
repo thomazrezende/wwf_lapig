@@ -423,12 +423,19 @@ set('indicators_list')
 DATA.list = []
 DATA.categs = ['all', 'selected']
 
+
 // etapa 6
 DATA.create_indicators_list = function(){
 
 	var filters
 
-	$(DATA.json).each(function(i,d){
+	$.each( DATA.json ,function(i,d){
+		d.lb = removeAccents(d.nome.toLowerCase())
+	})
+
+	sort_on( DATA.json, 'lb', false, false ) 
+
+	$.each( DATA.json, function(i,d){
 		create_indicator(d)
 		$(d.categ).each(function(_i,_d){
 			var categ_norm = removeAccents(_d.toLowerCase())
@@ -656,19 +663,20 @@ function create_indicator(d){
 
 	var data_csv = elem('div', {trg:data_box_bts, id:'data_csv', cls:'data_download animate2',html:'.CSV'})
 	$(data_csv).on('click', function(){
-		console.log('csv_link: ', this.indicator.id, this.indicator.ano[this.indicator.val_id]);
+		window.open( 'http://maps.lapig.iesa.ufg.br/indicadores/csv?id=' + this.indicator.id )
+		// console.log('csv_link: ', this.indicator.id, this.indicator.ano[this.indicator.val_id]);
 	})
 	data_csv.indicator = indicator
 	var data_csv_icon = elem('div', {trg:data_csv, cls:'icon icon25'})
 	$(data_csv_icon).append(icons.download)
 
-	var data_shf = elem('div', {trg:data_box_bts, id:'data_shf', cls:'data_download animate2',html:'.SHF'})
-	$(data_shf).on('click', function(){
+	var data_shp = elem('div', {trg:data_box_bts, id:'data_shp', cls:'data_download animate2',html:'.SHP'})
+	$(data_shp).on('click', function(){
 		window.open('http://maps.lapig.iesa.ufg.br/ows?REQUEST=GetFeature&SERVICE=wfs&VERSION=1.0.0&TYPENAME=' + this.indicator.id + "_" + this.indicator.ano[this.indicator.val_id] + '&OUTPUTFORMAT=shape-zip')
 	})
-	data_shf.indicator = indicator
-	var data_shf_icon = elem('div', {trg:data_shf, cls:'icon icon25'})
-	$(data_shf_icon).append(icons.download)
+	data_shp.indicator = indicator
+	var data_shp_icon = elem('div', {trg:data_shp, cls:'icon icon25'})
+	$(data_shp_icon).append(icons.download)
 
 	// 	window.open('http://maps.lapig.iesa.ufg.br/ows?REQUEST=GetFeature&SERVICE=wfs&VERSION=1.0.0&TYPENAME=' + this.ID + "_" + this.ano + '&OUTPUTFORMAT=shape-zip')
 	// })

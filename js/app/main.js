@@ -225,7 +225,7 @@ function sort_on(trg, attr1, attr2, reverse) {
 		return reverse ? -1 : 1
 		if (a[attr1] < b[attr1])
 		return reverse ? 1 : -1
-		if (a[attr1] == b[attr1]) {
+		if (attr2 && a[attr1] == b[attr1]) {
 			if (a[attr2] > b[attr2])
 			return reverse ? -1 : 1
 			if (a[attr2] < b[attr2])
